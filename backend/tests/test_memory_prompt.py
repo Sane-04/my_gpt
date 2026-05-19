@@ -30,6 +30,8 @@ def test_chat_system_prompt_contains_balanced_tool_and_memory_rules():
     assert "get_weather" in prompt
     assert "不要依赖模型记忆猜测" in prompt
     assert "不要凭经验猜天气" in prompt
+    assert "无法直接读取实时天气" in prompt
+    assert "如果用户已经给出地点" in prompt
     assert "这些本地确定性和天气问题不需要 web_search" in prompt
     assert "只有工具调用成功后" in prompt
     assert "不要说“我已经记住了”" in prompt
