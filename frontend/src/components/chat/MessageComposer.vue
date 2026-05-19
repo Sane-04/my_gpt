@@ -158,7 +158,27 @@ function setSpeechError(error: string) {
     return
   }
 
-  speechError.value = '语音输入暂时不可用'
+  if (error === 'audio-capture') {
+    speechError.value = '无法访问麦克风，请检查系统或浏览器权限'
+    return
+  }
+
+  if (error === 'network') {
+    speechError.value = '语音识别服务网络不可用，请换网络或稍后重试'
+    return
+  }
+
+  if (error === 'language-not-supported') {
+    speechError.value = '当前浏览器不支持中文语音识别'
+    return
+  }
+
+  if (error === 'aborted') {
+    speechError.value = '语音输入已中断'
+    return
+  }
+
+  speechError.value = `语音输入暂时不可用：${error || '未知错误'}`
 }
 
 /** 函数作用：把语音识别结果写入输入框；输入参数：event 语音识别结果事件；输出参数：无返回值。 */
