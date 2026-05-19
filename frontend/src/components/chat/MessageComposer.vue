@@ -26,6 +26,9 @@ const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'ima
 const maxImageCount = 5
 const maxImageSize = 10 * 1024 * 1024
 let speechRecognition: SpeechRecognition | null = null
+let speechRestartTimer: number | null = null
+let speechShouldRestartOnAbort = false
+let speechStopRequested = false
 // 只有有输入或图片，且没有流式生成时才允许发送。
 const canSend = computed(() => (content.value.trim().length > 0 || images.value.length > 0) && !props.isStreaming)
 const isSpeechSupported = computed(() => getSpeechRecognitionConstructor() !== null)
@@ -129,19 +132,42 @@ function removeImage(index: number) {
   imageError.value = ''
 }
 
-/** 函数作用：停止当前语音识别；输入参数：无；输出参数：无返回值。 */
-function stopSpeechRecognition() {
+/** 函数作用：清理语音识别重启定时器；输入参数：无；输出参数：无返回值。 */
+function clearSpeechRestartTimer() {
+  if (speechRestartTimer === null) {
+    return
+  }
+
+  window.clearTimeout(speechRestartTimer)
+  speechRestartTimer = null
+}
+
+/** 函数作用：清理当前语音识别实例引用；输入参数：无；输出参数：无返回值。 */
+function cleanupSpeechRecognitionInstance() {
   if (!speechRecognition) {
-    isListening.value = false
-    interimSpeechText.value = ''
     return
   }
 
   speechRecognition.onresult = null
   speechRecognition.onerror = null
   speechRecognition.onend = null
-  speechRecognition.stop()
   speechRecognition = null
+}
+
+/** 函数作用：停止当前语音识别；输入参数：无；输出参数：无返回值。 */
+function stopSpeechRecognition() {
+  clearSpeechRestartTimer()
+  speechShouldRestartOnAbort = false
+  speechStopRequested = true
+  if (!speechRecognition) {
+    isListening.value = false
+    interimSpeechText.value = ''
+    return
+  }
+
+  const currentRecognition = speechRecognition
+  cleanupSpeechRecognitionInstance()
+  currentRecognition.stop()
   isListening.value = false
   interimSpeechText.value = ''
 }
@@ -174,7 +200,7 @@ function setSpeechError(error: string) {
   }
 
   if (error === 'aborted') {
-    speechError.value = '语音输入已中断'
+    speechError.value = '语音输入被浏览器中断，正在重试...'
     return
   }
 
@@ -221,6 +247,8 @@ function toggleSpeechRecognition() {
 
   speechError.value = ''
   interimSpeechText.value = ''
+  speechShouldRestartOnAbort = true
+  speechStopRequested = false
   speechRecognition = new SpeechRecognitionConstructor()
   speechRecognition.lang = 'zh-CN'
   speechRecognition.continuous = false
@@ -228,12 +256,26 @@ function toggleSpeechRecognition() {
   speechRecognition.onresult = handleSpeechResult
   speechRecognition.onerror = (event) => {
     setSpeechError(event.error)
-    stopSpeechRecognition()
+    speechShouldRestartOnAbort = event.error === 'aborted' && !speechStopRequested
   }
   speechRecognition.onend = () => {
-    speechRecognition = null
+    cleanupSpeechRecognitionInstance()
     isListening.value = false
     interimSpeechText.value = ''
+
+    if (!speechShouldRestartOnAbort || speechStopRequested || props.isStreaming) {
+      speechShouldRestartOnAbort = false
+      return
+    }
+
+    speechShouldRestartOnAbort = false
+    clearSpeechRestartTimer()
+    speechRestartTimer = window.setTimeout(() => {
+      speechRestartTimer = null
+      if (!props.isStreaming && !isListening.value) {
+        toggleSpeechRecognition()
+      }
+    }, 1200)
   }
 
   try {
