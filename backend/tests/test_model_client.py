@@ -124,7 +124,7 @@ def test_model_client_maps_chat_completions_delta_events(monkeypatch):
         {"type": "delta", "delta": "好"},
         {"type": "completed", "content": "你好", "tool_calls": [], "finish_reason": "stop"},
     ]
-    assert fake_http.captured_kwargs == {"timeout": None}
+    assert fake_http.captured_kwargs["timeout"] is not None
     assert fake_http.requests[0][1] == "https://example.test/v1/chat/completions"
     assert fake_http.requests[0][2]["json"] == {
         "model": "test-model",

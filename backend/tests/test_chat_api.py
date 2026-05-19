@@ -628,6 +628,64 @@ def test_chat_stream_returns_error_event_and_does_not_save_empty_assistant(monke
     assert saved_messages == [(MessageRole.USER, "你好", None)]
 
 
+def test_chat_stream_sanitizes_upstream_html_gateway_error(monkeypatch):
+    """函数作用：验证上游模型网关返回 HTML 502 时，聊天流返回可读中文错误。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    class HtmlGatewayFailingModelClient(FailingModelClient):
+        """类作用：模拟模型服务返回 nginx HTML 502。"""
+
+        async def stream_chat_completion(self, _messages, _tools=None):
+            """函数作用：抛出包含 HTML 的模型流错误。
+            输入参数：_messages - 模型输入消息；_tools - 工具定义。
+            输出参数：异步生成器。
+            """
+            if False:
+                yield {}
+            raise ModelStreamError(
+                "<html> <head><title>502 Bad Gateway</title></head> "
+                "<body> <center><h1>502 Bad Gateway</h1></center> "
+                "<hr><center>nginx/1.22.1</center> </body> </html>"
+            )
+
+    user = build_user()
+    conversation = build_conversation(user.id)
+    install_auth_overrides(user)
+
+    async def _helper_get_conversation_by_id(_session, _user_id, _conversation_id):
+        return conversation
+
+    async def _helper_count_messages(_session, _user_id, _conversation_id):
+        return 1
+
+    async def _helper_create_message(_session, user_id, conversation_id, role, content, metadata=None):
+        return build_message(user_id, conversation_id, role, content)
+
+    async def _helper_list_recent_messages(_session, _user_id, _conversation_id, _limit):
+        return []
+
+    async def _helper_update_message_embedding_result(_session, _message_id, _user_id, _embedding, _status, _error):
+        return None
+
+    monkeypatch.setattr(chat_api, "get_conversation_by_id", _helper_get_conversation_by_id)
+    monkeypatch.setattr(chat_api, "count_messages", _helper_count_messages)
+    monkeypatch.setattr(chat_api, "create_message", _helper_create_message)
+    monkeypatch.setattr(chat_api, "list_recent_messages", _helper_list_recent_messages)
+    monkeypatch.setattr(chat_api, "update_message_embedding_result", _helper_update_message_embedding_result)
+    monkeypatch.setattr(chat_api, "ChatCompletionsModelClient", HtmlGatewayFailingModelClient)
+
+    response = TestClient(app).post(
+        "/api/chat/stream",
+        json={"conversationId": str(conversation.id), "content": "联网查一下", "enableWebSearch": True},
+    )
+
+    assert response.status_code == 200
+    assert response.text.splitlines() == [
+        '{"type": "error", "message": "模型服务网关错误（502 Bad Gateway），请检查 OPENAI_BASE_URL 对应服务是否可用，或稍后重试"}'
+    ]
+
+
 def test_prompt_snapshot_saved_only_when_enabled(monkeypatch):
     """函数作用：验证配置开启时才保存 Prompt 快照。
     输入参数：monkeypatch - pytest monkeypatch fixture。

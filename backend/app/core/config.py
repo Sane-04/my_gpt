@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     embedding_model: str = Field(default="text-embedding-3-small", alias="EMBEDDING_MODEL")
     # 联网搜索配置：使用 SerpApi Google Search API 获取通用网页搜索结果。
     serpapi_api_key: str = Field(default="", alias="SERPAPI_API_KEY")
+    serpapi_timeout_seconds: float = Field(default=15.0, alias="SERPAPI_TIMEOUT_SECONDS")
+    # 模型请求超时：流式读取超时用于避免上游网关挂起时聊天一直处于生成中。
+    model_http_timeout_seconds: float = Field(default=60.0, alias="MODEL_HTTP_TIMEOUT_SECONDS")
+    model_stream_timeout_seconds: float = Field(default=180.0, alias="MODEL_STREAM_TIMEOUT_SECONDS")
     # 上下文与长期记忆配置：控制模型请求拼装时的消息窗口和记忆文本上限。
     context_window_size: int = Field(default=5, alias="CONTEXT_WINDOW_SIZE")
     long_term_memory_max_chars: int = Field(default=20000, alias="LONG_TERM_MEMORY_MAX_CHARS")

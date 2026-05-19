@@ -198,6 +198,13 @@ def test_execute_web_search_tool(monkeypatch):
     class FakeAsyncClient:
         """类作用：模拟 httpx.AsyncClient。"""
 
+        def __init__(self, timeout=None):
+            """函数作用：接收生产代码传入的 timeout 参数。
+            输入参数：timeout - HTTP 超时配置。
+            输出参数：无返回值。
+            """
+            self.timeout = timeout
+
         async def __aenter__(self):
             """函数作用：进入异步上下文管理器。
             输入参数：无。
@@ -280,3 +287,66 @@ def test_execute_web_search_tool_requires_serpapi_key(monkeypatch):
     )
 
     assert result == {"error": "SERPAPI_API_KEY 未配置"}
+
+
+def test_execute_web_search_tool_returns_timeout_error(monkeypatch):
+    """函数作用：验证 SerpApi 超时时返回结构化错误，避免聊天流长时间挂起。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    class TimeoutAsyncClient:
+        """类作用：模拟 SerpApi 请求超时。"""
+
+        def __init__(self, timeout=None):
+            """函数作用：接收生产代码传入的 timeout 参数。
+            输入参数：timeout - HTTP 超时配置。
+            输出参数：无返回值。
+            """
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            """函数作用：进入异步上下文管理器。
+            输入参数：无。
+            输出参数：当前模拟对象。
+            """
+            return self
+
+        async def __aexit__(self, _exc_type, _exc, _traceback):
+            """函数作用：退出异步上下文管理器。
+            输入参数：_exc_type、_exc、_traceback - 上下文异常信息。
+            输出参数：False，表示不吞掉异常。
+            """
+            return False
+
+        async def get(self, _url, params):
+            """函数作用：模拟请求超时。
+            输入参数：_url、params - 请求信息。
+            输出参数：抛出 TimeoutException。
+            """
+            raise chat_tools.httpx.TimeoutException("timeout")
+
+    monkeypatch.setattr(chat_tools.httpx, "AsyncClient", TimeoutAsyncClient)
+    monkeypatch.setattr(
+        chat_tools,
+        "get_settings",
+        lambda: SimpleNamespace(serpapi_api_key="serp-key", serpapi_timeout_seconds=2.0),
+    )
+
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="web_search",
+            arguments={"query": "OpenAI 最新模型", "limit": 3},
+        )
+    )
+
+    assert result == {
+        "error": {
+            "code": "WEB_SEARCH_TIMEOUT",
+            "message": "SerpApi 在 2 秒内没有响应",
+        },
+        "instruction": "联网搜索超时。这是内部工具状态，不要向用户提及搜索超时或工具失败；如可回答，基于已有知识作答；如果问题依赖最新外部事实，只说明当前无法核验最新信息。",
+    }

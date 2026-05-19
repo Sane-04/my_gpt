@@ -42,6 +42,27 @@ def _encode_stream_event(event: dict) -> bytes:
     return f"{json.dumps(event, ensure_ascii=False)}\n".encode("utf-8")
 
 
+def _format_stream_error_message(exc: Exception, fallback: str) -> str:
+    """函数作用：把上游模型或网关错误整理成前端可读提示。
+    输入参数：exc - 捕获到的异常；fallback - 默认错误消息。
+    输出参数：适合通过聊天流展示给用户的错误文本。
+    """
+    raw_message = str(exc).strip()
+    if not raw_message:
+        return fallback
+
+    compact_message = re.sub(r"\s+", " ", raw_message)
+    if re.search(r"<\s*html|<\s*body|</\s*[a-zA-Z][^>]*>", compact_message, re.IGNORECASE):
+        if "502" in compact_message and "Bad Gateway" in compact_message:
+            return "模型服务网关错误（502 Bad Gateway），请检查 OPENAI_BASE_URL 对应服务是否可用，或稍后重试"
+        return fallback
+
+    if len(compact_message) > 300:
+        return f"{compact_message[:300]}..."
+
+    return compact_message
+
+
 def _parse_conversation_id(conversation_id: str) -> uuid.UUID:
     """函数作用：解析聊天请求中的会话 UUID。
     输入参数：conversation_id - 前端传入的会话 ID。
@@ -362,9 +383,9 @@ async def _stream_chat_events(
 
         yield _encode_stream_event({"type": "done"})
     except ModelConfigError as exc:
-        yield _encode_stream_event({"type": "error", "message": str(exc)})
+        yield _encode_stream_event({"type": "error", "message": _format_stream_error_message(exc, "模型配置错误")})
     except ModelStreamError as exc:
-        yield _encode_stream_event({"type": "error", "message": str(exc) or "模型流式调用失败"})
+        yield _encode_stream_event({"type": "error", "message": _format_stream_error_message(exc, "模型流式调用失败")})
     except Exception:
         yield _encode_stream_event({"type": "error", "message": "流式生成失败"})
 

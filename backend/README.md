@@ -122,6 +122,9 @@ Copy-Item backend/.env.example backend/.env
 | `EMBEDDING_BASE_URL` | Embedding 兼容服务 base URL；不回退到 `OPENAI_BASE_URL` |
 | `EMBEDDING_MODEL` | Embedding 模型 |
 | `SERPAPI_API_KEY` | SerpApi API Key，用于联网搜索 |
+| `SERPAPI_TIMEOUT_SECONDS` | SerpApi 请求超时，默认 15 秒 |
+| `MODEL_HTTP_TIMEOUT_SECONDS` | 非流式模型请求超时，默认 60 秒 |
+| `MODEL_STREAM_TIMEOUT_SECONDS` | 流式模型无数据读取超时，默认 180 秒 |
 | `CONTEXT_WINDOW_SIZE` | 最近上下文消息数，默认 5 |
 | `LONG_TERM_MEMORY_MAX_CHARS` | 长期记忆全文上限，默认 20000 |
 | `SAVE_PROMPT_SNAPSHOTS` | 是否保存 Prompt 快照 |

@@ -85,6 +85,9 @@ my_gpt/
 | `OPENAI_API_KEY` / `OPENAI_BASE_URL` | 对话模型服务配置 |
 | `EMBEDDING_API_KEY` / `EMBEDDING_BASE_URL` | Embedding 服务配置 |
 | `SERPAPI_API_KEY` | 联网搜索配置 |
+| `SERPAPI_TIMEOUT_SECONDS` | 联网搜索请求超时，默认 15 秒 |
+| `MODEL_HTTP_TIMEOUT_SECONDS` | 非流式模型请求超时，默认 60 秒 |
+| `MODEL_STREAM_TIMEOUT_SECONDS` | 流式模型无数据读取超时，默认 180 秒 |
 
 Docker 部署中的 `DATABASE_URL` 示例：
 

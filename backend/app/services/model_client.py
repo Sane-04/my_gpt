@@ -162,7 +162,9 @@ class ChatCompletionsModelClient:
         输入参数：path - API 路径；payload - 请求体。
         输出参数：响应 JSON 字典。
         """
-        async with httpx.AsyncClient() as client:
+        settings = get_settings()
+        timeout_seconds = max(float(getattr(settings, "model_http_timeout_seconds", 60.0)), 1.0)
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_seconds, connect=min(timeout_seconds, 10.0))) as client:
             response = await client.post(self._api_url(path), headers=self._headers(), json=payload)
 
         if response.status_code >= 400:
@@ -175,7 +177,15 @@ class ChatCompletionsModelClient:
         输入参数：path - API 路径；payload - 请求体。
         输出参数：异步产出 JSON 数据。
         """
-        async with httpx.AsyncClient(timeout=None) as client:
+        settings = get_settings()
+        read_timeout_seconds = max(float(getattr(settings, "model_stream_timeout_seconds", 180.0)), 1.0)
+        timeout = httpx.Timeout(
+            connect=min(read_timeout_seconds, 10.0),
+            read=read_timeout_seconds,
+            write=30.0,
+            pool=30.0,
+        )
+        async with httpx.AsyncClient(timeout=timeout) as client:
             async with client.stream("POST", self._api_url(path), headers=self._headers(), json=payload) as response:
                 if response.status_code >= 400:
                     body = await response.aread()
@@ -215,7 +225,9 @@ class ChatCompletionsModelClient:
         输出参数：embedding 浮点数组。
         """
         self._validate_embedding_config()
-        async with httpx.AsyncClient() as client:
+        settings = get_settings()
+        timeout_seconds = max(float(getattr(settings, "model_http_timeout_seconds", 60.0)), 1.0)
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_seconds, connect=min(timeout_seconds, 10.0))) as client:
             response = await client.post(
                 self._embedding_api_url("/embeddings"),
                 headers=self._embedding_headers(),

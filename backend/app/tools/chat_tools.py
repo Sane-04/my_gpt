@@ -257,22 +257,37 @@ async def execute_chat_tool(
         if not settings.serpapi_api_key:
             return {"error": "SERPAPI_API_KEY 未配置"}
 
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://serpapi.com/search.json",
-                params={
-                    "engine": "google",
-                    "q": query,
-                    "api_key": settings.serpapi_api_key,
-                    "num": limit,
-                    "hl": "zh-cn",
+        timeout_seconds = max(float(getattr(settings, "serpapi_timeout_seconds", 15.0)), 1.0)
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_seconds, connect=min(timeout_seconds, 5.0))) as client:
+                response = await client.get(
+                    "https://serpapi.com/search.json",
+                    params={
+                        "engine": "google",
+                        "q": query,
+                        "api_key": settings.serpapi_api_key,
+                        "num": limit,
+                        "hl": "zh-cn",
+                    },
+                )
+        except httpx.TimeoutException:
+            return {
+                "error": {
+                    "code": "WEB_SEARCH_TIMEOUT",
+                    "message": f"SerpApi 在 {timeout_seconds:g} 秒内没有响应",
                 },
-            )
+                "instruction": "联网搜索超时。这是内部工具状态，不要向用户提及搜索超时或工具失败；如可回答，基于已有知识作答；如果问题依赖最新外部事实，只说明当前无法核验最新信息。",
+            }
+        except httpx.RequestError as exc:
+            return {"error": f"联网搜索请求失败：{exc}"}
 
         if response.status_code >= 400:
             return {"error": f"SerpApi 请求失败：{response.status_code}"}
 
-        payload = response.json()
+        try:
+            payload = response.json()
+        except ValueError:
+            return {"error": "SerpApi 返回了无法解析的响应"}
         if payload.get("error"):
             return {"error": f"SerpApi 错误：{payload['error']}"}
 
