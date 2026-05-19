@@ -1,0 +1,7 @@
+.env
+.env.*
+node_modules
+dist
+.vscode
+vite-dev.log
+vite-dev.err.log

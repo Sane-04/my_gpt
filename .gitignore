@@ -1,0 +1,46 @@
+# 环境变量：保留示例文件，忽略真实密钥和本地配置。
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Python 缓存、测试缓存和虚拟环境。
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage/
+htmlcov/
+.venv/
+venv/
+env/
+
+# 前端依赖和构建产物。
+frontend/node_modules/
+frontend/dist/
+
+# 后端本地数据和运行产物。
+backend/data/
+backend/**/*.log
+backend/*.log
+
+# 前端开发日志。
+frontend/**/*.log
+frontend/*.log
+
+# IDE 和系统文件。
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Docker 本地覆盖文件。
+docker-compose.override.yml
+
+# 其他文件
+DEV_PLAN.md
+.codex
+.tasks

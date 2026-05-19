@@ -1,0 +1,76 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - frontend_dist:/srv/frontend:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_started
+      frontend-build:
+        condition: service_completed_successfully
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d my_gpt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build:
+      context: ./backend
+    restart: "no"
+    env_file:
+      - ./backend/.env
+    environment:
+      MEMORY_DIR: /app/data/memories
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      MEMORY_DIR: /app/data/memories
+    volumes:
+      - memory_data:/app/data/memories
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  frontend-build:
+    build:
+      context: ./frontend
+      args:
+        VITE_APP_ENV: production
+        VITE_PUBLIC_API_BASE_URL: ""
+    restart: "no"
+    volumes:
+      - frontend_dist:/frontend-dist
+
+volumes:
+  postgres_data:
+  memory_data:
+  frontend_dist:
+  caddy_data:
+  caddy_config:

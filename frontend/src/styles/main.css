@@ -1,0 +1,271 @@
+﻿/* 模块说明：前端全局样式入口，维护基础排版、滚动条和 Markdown 渲染样式。 */
+@import 'tailwindcss';
+
+/* 全局基础：固定最小宽度，避免移动端极窄视口导致布局压坏。 */
+html {
+  min-width: 320px;
+  background: #fafafa;
+  color-scheme: light;
+}
+
+/* 使用系统字体栈，保持 SaaS/工具类界面清爽、快速、低干扰。 */
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Vue 根节点撑满视口，业务页面可以直接使用 min-h-screen。 */
+#app {
+  min-height: 100vh;
+}
+
+/* 统一盒模型，降低组件组合时的尺寸计算成本。 */
+* {
+  box-sizing: border-box;
+}
+
+/* 表单控件继承字体，避免浏览器默认字体破坏界面一致性。 */
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+/* 选中文本使用中性灰，符合当前浅色主题。 */
+::selection {
+  background: #d4d4d8;
+}
+
+/* Markdown 内容由助手消息使用，强调可读性和长文本换行能力。 */
+.markdown-body {
+  overflow-wrap: anywhere;
+}
+
+/* 移除首尾元素额外间距，防止消息气泡上下留白过大。 */
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body p,
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body blockquote,
+.markdown-body hr,
+.markdown-body pre,
+.markdown-body .code-block {
+  margin: 0.75rem 0;
+}
+
+/* 标题与强调文本让助手长回答更容易扫读。 */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  color: #09090b;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.markdown-body h1 {
+  font-size: 1.125rem;
+}
+
+.markdown-body h2 {
+  font-size: 1rem;
+}
+
+.markdown-body h3 {
+  font-size: 0.9375rem;
+}
+
+.markdown-body strong {
+  color: #09090b;
+  font-weight: 700;
+}
+
+/* 列表保留清晰缩进，适合模型分点回答。 */
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.25rem;
+}
+
+.markdown-body ul {
+  list-style: disc;
+}
+
+.markdown-body ol {
+  list-style: decimal;
+}
+
+.markdown-body li + li {
+  margin-top: 0.25rem;
+}
+
+.markdown-body hr {
+  border: 0;
+  border-top: 1px solid #e4e4e7;
+}
+
+/* 引用块用于展示用户原文或模型摘要。 */
+.markdown-body blockquote {
+  border-left: 3px solid #d4d4d8;
+  padding-left: 0.75rem;
+  color: #52525b;
+}
+
+/* 行内代码保持浅色底，和代码块形成层级区分。 */
+.markdown-body code {
+  border-radius: 0.25rem;
+  background: #f4f4f5;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.875em;
+}
+
+/* 代码块内部允许横向滚动，避免长代码撑破聊天布局。 */
+.code-block {
+  position: relative;
+}
+
+.markdown-body pre {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: #18181b;
+  padding: 1rem;
+}
+
+.code-block .markdown-body pre,
+.markdown-body .code-block pre {
+  margin: 0;
+  padding-top: 2.5rem;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  color: #f4f4f5;
+}
+
+.code-copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  border-radius: 0.375rem;
+  background: #27272a;
+  padding: 0.25rem 0.5rem;
+  color: #d4d4d8;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.code-copy-button:hover,
+.code-copy-button:focus {
+  background: #3f3f46;
+  color: #ffffff;
+  outline: none;
+}
+
+.code-copy-button[data-state='success'] {
+  background: #14532d;
+  color: #dcfce7;
+}
+
+.code-copy-button[data-state='error'] {
+  background: #7f1d1d;
+  color: #fee2e2;
+}
+
+.citation-capsule {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  vertical-align: baseline;
+  margin-left: 0.25rem;
+  border-radius: 999px;
+  background: #f4f4f5;
+  padding: 0.0625rem 0.375rem;
+  color: #52525b;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  cursor: default;
+  text-decoration: none;
+}
+
+.citation-capsule:hover,
+.citation-capsule:focus {
+  background: #e4e4e7;
+  color: #18181b;
+  outline: none;
+}
+
+.citation-popover {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.5rem);
+  z-index: 40;
+  display: none;
+  width: min(22rem, calc(100vw - 2rem));
+  max-width: 22rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  padding: 0.625rem;
+  color: #18181b;
+  box-shadow: 0 10px 24px rgb(24 24 27 / 0.14);
+  white-space: normal;
+}
+
+.citation-capsule:hover .citation-popover,
+.citation-capsule:focus .citation-popover,
+.citation-capsule:focus-within .citation-popover {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.citation-source {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.citation-source + .citation-source {
+  border-top: 1px solid #f4f4f5;
+  padding-top: 0.5rem;
+}
+
+.citation-source-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: #18181b;
+}
+
+.citation-source-snippet {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  color: #52525b;
+}
+
+.citation-source-link {
+  overflow-wrap: anywhere;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  color: #2563eb;
+}

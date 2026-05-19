@@ -1,0 +1,65 @@
+﻿# 模块说明：后端核心配置与通用基础能力模块。
+from functools import lru_cache
+
+from dotenv import load_dotenv
+from pydantic import AliasChoices, Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+load_dotenv("backend/.env")
+load_dotenv(".env")
+
+
+class Settings(BaseSettings):
+    """类作用：集中管理后端运行配置。"""
+
+    # 配置来源：优先读取 backend/.env，兼容从 backend 目录内执行命令时读取 .env。
+    model_config = SettingsConfigDict(extra="ignore")
+
+    # 数据库连接串：SQLAlchemy 异步 engine 使用 asyncpg 驱动连接 PostgreSQL。
+    database_url: str = Field(
+        default="postgresql+asyncpg://postgres:sane@127.0.0.1:5432/my_gpt",
+        alias="DATABASE_URL",
+    )
+    # JWT 配置：后续登录鉴权任务会使用这些参数签发和校验 Token。
+    jwt_secret: str = Field(default="sane", alias="JWT_SECRET")
+    jwt_expire_days: int = Field(default=7, alias="JWT_EXPIRE_DAYS")
+    # 模型配置：兼容 OpenAI 官方接口或同协议服务。
+    openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
+    openai_base_url: str = Field(default="https://api.openai.com/v1", alias="OPENAI_BASE_URL")
+    chat_model: str = Field(default="gpt-5.4", validation_alias=AliasChoices("CHAT_MODEL", "RESPONSES_MODEL"))
+    # Embedding 配置：独立于聊天模型配置，避免不同供应商或网关混用鉴权信息。
+    embedding_api_key: str = Field(default="", alias="EMBEDDING_API_KEY")
+    embedding_base_url: str = Field(default="", alias="EMBEDDING_BASE_URL")
+    embedding_model: str = Field(default="text-embedding-3-small", alias="EMBEDDING_MODEL")
+    # 联网搜索配置：使用 SerpApi Google Search API 获取通用网页搜索结果。
+    serpapi_api_key: str = Field(default="", alias="SERPAPI_API_KEY")
+    # 上下文与长期记忆配置：控制模型请求拼装时的消息窗口和记忆文本上限。
+    context_window_size: int = Field(default=5, alias="CONTEXT_WINDOW_SIZE")
+    long_term_memory_max_chars: int = Field(default=20000, alias="LONG_TERM_MEMORY_MAX_CHARS")
+    # 调试配置：生产环境默认不保存 prompt_snapshots，避免持久化敏感提示词。
+    save_prompt_snapshots: bool = Field(default=False, alias="SAVE_PROMPT_SNAPSHOTS")
+    memory_dir: str = Field(default="backend/data/memories", alias="MEMORY_DIR")
+    # CORS 配置：允许本地前端开发服务器跨域访问后端 API。
+    cors_origins: list[str] = Field(default=["http://localhost:5173", "http://127.0.0.1:5173"], alias="CORS_ORIGINS")
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
+        """函数作用：把环境变量中的 CORS 源解析为列表。
+        输入参数：value - 字符串或字符串列表。
+        输出参数：CORS 源列表。
+        """
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",") if item.strip()]
+
+        return value
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """函数作用：返回缓存后的后端配置。
+    输入参数：无。
+    输出参数：Settings 配置对象。
+    """
+    return Settings()
