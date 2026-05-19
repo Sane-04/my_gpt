@@ -177,6 +177,7 @@ def test_get_chat_tools_contains_basic_deterministic_tools():
     assert "calculate_expression" in tool_names
     assert "convert_units" in tool_names
     assert "calendar_info" in tool_names
+    assert "get_weather" in tool_names
 
 
 def test_execute_get_current_datetime_tool():
@@ -300,6 +301,210 @@ def test_execute_calendar_info_tool():
     assert info_result["is_leap_year"] is False
     assert info_result["days_in_month"] == 31
     assert add_result["date"] == "2026-05-26"
+
+
+def test_execute_get_weather_tool(monkeypatch):
+    """函数作用：验证 get_weather 工具会调用 Open-Meteo 并返回结构化天气结果。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    calls = []
+
+    class FakeResponse:
+        """类作用：模拟 Open-Meteo HTTP 响应。"""
+
+        status_code = 200
+
+        def __init__(self, payload):
+            """函数作用：保存模拟响应载荷。
+            输入参数：payload - 响应 JSON。
+            输出参数：无返回值。
+            """
+            self.payload = payload
+
+        def json(self):
+            """函数作用：返回模拟 JSON。
+            输入参数：无。
+            输出参数：响应 JSON。
+            """
+            return self.payload
+
+    class FakeAsyncClient:
+        """类作用：模拟 httpx.AsyncClient。"""
+
+        def __init__(self, timeout=None):
+            """函数作用：接收生产代码传入的 timeout 参数。
+            输入参数：timeout - HTTP 超时配置。
+            输出参数：无返回值。
+            """
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            """函数作用：进入异步上下文管理器。
+            输入参数：无。
+            输出参数：当前模拟对象。
+            """
+            return self
+
+        async def __aexit__(self, _exc_type, _exc, _traceback):
+            """函数作用：退出异步上下文管理器。
+            输入参数：_exc_type、_exc、_traceback - 上下文异常信息。
+            输出参数：False，表示不吞掉异常。
+            """
+            return False
+
+        async def get(self, url, params):
+            """函数作用：按请求地址返回地理编码或天气响应。
+            输入参数：url - 请求地址；params - 查询参数。
+            输出参数：FakeResponse。
+            """
+            calls.append((url, params))
+            if url == "https://geocoding-api.open-meteo.com/v1/search":
+                assert params == {"name": "北京", "count": 1, "language": "zh", "format": "json"}
+                return FakeResponse(
+                    {
+                        "results": [
+                            {
+                                "name": "北京",
+                                "country": "中国",
+                                "admin1": "北京市",
+                                "latitude": 39.9042,
+                                "longitude": 116.4074,
+                            }
+                        ]
+                    }
+                )
+            assert url == "https://api.open-meteo.com/v1/forecast"
+            assert params["latitude"] == 39.9042
+            assert params["longitude"] == 116.4074
+            assert params["timezone"] == "Asia/Shanghai"
+            assert params["forecast_days"] == 2
+            return FakeResponse(
+                {
+                    "timezone": "Asia/Shanghai",
+                    "current": {
+                        "time": "2026-05-19T10:00",
+                        "temperature_2m": 24.5,
+                        "relative_humidity_2m": 45,
+                        "apparent_temperature": 25.1,
+                        "precipitation": 0,
+                        "rain": 0,
+                        "weather_code": 1,
+                        "wind_speed_10m": 8.2,
+                    },
+                    "daily": {
+                        "time": ["2026-05-19", "2026-05-20"],
+                        "weather_code": [1, 61],
+                        "temperature_2m_max": [27.0, 22.0],
+                        "temperature_2m_min": [16.0, 14.0],
+                        "precipitation_probability_max": [10, 70],
+                    },
+                }
+            )
+
+    monkeypatch.setattr(chat_tools.httpx, "AsyncClient", FakeAsyncClient)
+
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="get_weather",
+            arguments={"location": "北京", "forecast_days": 2},
+        )
+    )
+
+    assert len(calls) == 2
+    assert result["location"]["name"] == "北京"
+    assert result["current"]["temperature"] == 24.5
+    assert result["current"]["weather"] == "大致晴朗"
+    assert result["daily"][1]["weather"] == "小雨"
+    assert result["daily"][1]["precipitation_probability_max"] == 70
+    assert "出行建议" in result["instruction"]
+
+
+def test_execute_get_weather_tool_requires_location():
+    """函数作用：验证 get_weather 工具要求提供地点。
+    输入参数：无。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="get_weather",
+            arguments={"location": ""},
+        )
+    )
+
+    assert result == {"error": "location 不能为空"}
+
+
+def test_execute_get_weather_tool_handles_empty_geocoding(monkeypatch):
+    """函数作用：验证 get_weather 在地点查不到时返回清晰错误。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    class FakeResponse:
+        """类作用：模拟无地点结果的 Open-Meteo 响应。"""
+
+        status_code = 200
+
+        def json(self):
+            """函数作用：返回空地理编码结果。
+            输入参数：无。
+            输出参数：响应 JSON。
+            """
+            return {"results": []}
+
+    class FakeAsyncClient:
+        """类作用：模拟 httpx.AsyncClient。"""
+
+        def __init__(self, timeout=None):
+            """函数作用：接收生产代码传入的 timeout 参数。
+            输入参数：timeout - HTTP 超时配置。
+            输出参数：无返回值。
+            """
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            """函数作用：进入异步上下文管理器。
+            输入参数：无。
+            输出参数：当前模拟对象。
+            """
+            return self
+
+        async def __aexit__(self, _exc_type, _exc, _traceback):
+            """函数作用：退出异步上下文管理器。
+            输入参数：_exc_type、_exc、_traceback - 上下文异常信息。
+            输出参数：False，表示不吞掉异常。
+            """
+            return False
+
+        async def get(self, _url, params):
+            """函数作用：返回空地理编码响应。
+            输入参数：_url、params - 请求信息。
+            输出参数：FakeResponse。
+            """
+            return FakeResponse()
+
+    monkeypatch.setattr(chat_tools.httpx, "AsyncClient", FakeAsyncClient)
+
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="get_weather",
+            arguments={"location": "不存在的地方"},
+        )
+    )
+
+    assert result == {"error": "没有找到该地点"}
 
 
 def test_execute_web_search_tool(monkeypatch):

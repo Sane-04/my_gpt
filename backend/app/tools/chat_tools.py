@@ -167,6 +167,33 @@ CHAT_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "get_weather",
+            "description": "查询指定地点的当前天气和未来天气预报。用户询问天气、气温、是否下雨、风速、湿度、未来几天天气、是否适合出门等问题时使用。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "地点名称，例如 北京、上海、New York。",
+                    },
+                    "forecast_days": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 7,
+                        "description": "预报天数，默认 3 天，范围 1 到 7。",
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "description": "IANA 时区名称，例如 Asia/Shanghai。默认 Asia/Shanghai。",
+                    },
+                },
+                "required": ["location"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "list_long_term_memory",
             "description": "列出当前用户已有长期记忆。保存新记忆前若不确定是否重复，或更新记忆前需要查找 memory_id / memory_key 时使用。",
             "parameters": {
@@ -640,6 +667,171 @@ async def execute_chat_tool(
             "weekday_zh": weekday_zh_list[target_date.weekday()],
             "is_leap_year": calendar.isleap(target_date.year),
             "days_in_month": days_in_month,
+        }
+
+    if tool_name == "get_weather":
+        location = str(arguments.get("location") or "").strip()
+        if not location:
+            return {"error": "location 不能为空"}
+
+        timezone_name = str(arguments.get("timezone") or "Asia/Shanghai").strip()
+        forecast_days = min(max(int(arguments.get("forecast_days") or 3), 1), 7)
+        timeout_seconds = 10.0
+        weather_code_zh = {
+            0: "晴朗",
+            1: "大致晴朗",
+            2: "局部多云",
+            3: "阴天",
+            45: "有雾",
+            48: "雾凇",
+            51: "小毛毛雨",
+            53: "中等毛毛雨",
+            55: "强毛毛雨",
+            56: "冻毛毛雨",
+            57: "强冻毛毛雨",
+            61: "小雨",
+            63: "中雨",
+            65: "大雨",
+            66: "冻雨",
+            67: "强冻雨",
+            71: "小雪",
+            73: "中雪",
+            75: "大雪",
+            77: "雪粒",
+            80: "小阵雨",
+            81: "中等阵雨",
+            82: "强阵雨",
+            85: "小阵雪",
+            86: "强阵雪",
+            95: "雷暴",
+            96: "雷暴伴小冰雹",
+            99: "雷暴伴强冰雹",
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_seconds, connect=5.0)) as client:
+                geocoding_response = await client.get(
+                    "https://geocoding-api.open-meteo.com/v1/search",
+                    params={
+                        "name": location,
+                        "count": 1,
+                        "language": "zh",
+                        "format": "json",
+                    },
+                )
+                if geocoding_response.status_code >= 400:
+                    return {"error": f"Open-Meteo 地理编码请求失败：{geocoding_response.status_code}"}
+
+                try:
+                    geocoding_payload = geocoding_response.json()
+                except ValueError:
+                    return {"error": "Open-Meteo 地理编码返回了无法解析的响应"}
+
+                places = geocoding_payload.get("results") or []
+                if not places:
+                    return {"error": "没有找到该地点"}
+
+                place = places[0]
+                latitude = place.get("latitude")
+                longitude = place.get("longitude")
+                if latitude is None or longitude is None:
+                    return {"error": "地点缺少经纬度信息"}
+
+                weather_response = await client.get(
+                    "https://api.open-meteo.com/v1/forecast",
+                    params={
+                        "latitude": latitude,
+                        "longitude": longitude,
+                        "current": ",".join(
+                            [
+                                "temperature_2m",
+                                "relative_humidity_2m",
+                                "apparent_temperature",
+                                "precipitation",
+                                "rain",
+                                "weather_code",
+                                "wind_speed_10m",
+                            ]
+                        ),
+                        "daily": ",".join(
+                            [
+                                "weather_code",
+                                "temperature_2m_max",
+                                "temperature_2m_min",
+                                "precipitation_probability_max",
+                            ]
+                        ),
+                        "timezone": timezone_name,
+                        "forecast_days": forecast_days,
+                    },
+                )
+        except httpx.TimeoutException:
+            return {
+                "error": {
+                    "code": "WEATHER_TIMEOUT",
+                    "message": f"Open-Meteo 在 {timeout_seconds:g} 秒内没有响应",
+                },
+                "instruction": "天气查询超时。这是内部工具状态，不要向用户提及工具失败细节；只说明当前无法获取该地点天气。",
+            }
+        except httpx.RequestError as exc:
+            return {"error": f"天气查询请求失败：{exc}"}
+
+        if weather_response.status_code >= 400:
+            return {"error": f"Open-Meteo 天气请求失败：{weather_response.status_code}"}
+
+        try:
+            weather_payload = weather_response.json()
+        except ValueError:
+            return {"error": "Open-Meteo 天气返回了无法解析的响应"}
+
+        current_weather = weather_payload.get("current") or {}
+        current_code = current_weather.get("weather_code")
+        daily = weather_payload.get("daily") or {}
+        daily_forecasts = []
+        daily_times = daily.get("time") or []
+        for index, daily_date in enumerate(daily_times):
+            daily_code = (daily.get("weather_code") or [None] * len(daily_times))[index]
+            daily_forecasts.append(
+                {
+                    "date": daily_date,
+                    "weather_code": daily_code,
+                    "weather": weather_code_zh.get(daily_code, "未知天气"),
+                    "temperature_max": (daily.get("temperature_2m_max") or [None] * len(daily_times))[index],
+                    "temperature_min": (daily.get("temperature_2m_min") or [None] * len(daily_times))[index],
+                    "precipitation_probability_max": (
+                        daily.get("precipitation_probability_max") or [None] * len(daily_times)
+                    )[index],
+                }
+            )
+
+        return {
+            "location": {
+                "name": place.get("name") or location,
+                "country": place.get("country"),
+                "admin1": place.get("admin1"),
+                "latitude": latitude,
+                "longitude": longitude,
+                "timezone": weather_payload.get("timezone") or timezone_name,
+            },
+            "current": {
+                "time": current_weather.get("time"),
+                "temperature": current_weather.get("temperature_2m"),
+                "apparent_temperature": current_weather.get("apparent_temperature"),
+                "relative_humidity": current_weather.get("relative_humidity_2m"),
+                "precipitation": current_weather.get("precipitation"),
+                "rain": current_weather.get("rain"),
+                "wind_speed": current_weather.get("wind_speed_10m"),
+                "weather_code": current_code,
+                "weather": weather_code_zh.get(current_code, "未知天气"),
+            },
+            "daily": daily_forecasts,
+            "units": {
+                "temperature": "°C",
+                "precipitation": "mm",
+                "precipitation_probability": "%",
+                "wind_speed": "km/h",
+            },
+            "instruction": "请基于天气工具结果直接回答；优先给出当前天气结论，再补充温度、体感温度、降水概率、风速和出行建议；不要编造工具结果之外的天气信息。",
         }
 
     if tool_name == "web_search":
