@@ -146,4 +146,25 @@ describe('useMessagesStore', () => {
     expect(messagesStore.getPaginationByConversationId('conversation-1').hasMore).toBe(false)
     expect(messagesStore.messageCacheOrder).toEqual(['conversation-2', 'conversation-3', 'conversation-4'])
   })
+
+  it('天气工具调用时展示查询天气状态', async () => {
+    vi.spyOn(chatApi, 'stream').mockResolvedValue(
+      createStream([
+        { type: 'tool_call_started', toolName: 'get_weather' },
+        { type: 'tool_call_finished', toolName: 'get_weather' },
+        { type: 'delta', delta: '菏泽今天晴朗。' },
+        { type: 'done' },
+      ]),
+    )
+    const messagesStore = useMessagesStore()
+    const processingSpy = vi.spyOn(messagesStore, 'setAssistantProcessingText')
+
+    await messagesStore.sendMessage({
+      conversationId: 'conversation-1',
+      content: '今天菏泽的天气怎么样？',
+    })
+
+    const messages = messagesStore.getMessagesByConversationId('conversation-1')
+    expect(processingSpy).toHaveBeenCalledWith('conversation-1', messages[1]?.id, '正在查询天气...')
+  })
 })

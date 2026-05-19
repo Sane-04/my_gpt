@@ -273,7 +273,11 @@ export const useMessagesStore = defineStore('messages', {
               this.setAssistantProcessingText(
                 input.conversationId,
                 assistantMessage.id,
-                event.toolName === 'web_search' ? '正在搜索网页...' : '正在处理...',
+                event.toolName === 'web_search'
+                  ? '正在搜索网页...'
+                  : event.toolName === 'get_weather'
+                    ? '正在查询天气...'
+                    : '正在处理...',
               )
             }
 
