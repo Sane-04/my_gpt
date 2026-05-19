@@ -5,7 +5,7 @@ import App from './App.vue'
 import router from './router'
 import { AUTH_EXPIRED_EVENT } from './api/http'
 import { useAuthStore } from './stores/auth'
-import 'highlight.js/styles/github-dark.css'
+import 'highlight.js/styles/github.css'
 import 'katex/dist/katex.min.css'
 import './styles/main.css'
 
