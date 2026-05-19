@@ -1,6 +1,12 @@
 # 模块说明：后端聊天工具模块，承接模型工具调用分发和具体工具执行逻辑。
+import ast
+import calendar
+import re
 import uuid
+from datetime import date, datetime, timedelta
+from decimal import Decimal, InvalidOperation
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -72,6 +78,89 @@ CHAT_TOOLS = [
                     },
                 },
                 "required": ["position"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_datetime",
+            "description": "获取指定时区的当前日期、时间、星期和 UTC 偏移。用户询问今天几号、今天星期几、现在几点、当前年份等实时日期时间问题时使用。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "timezone": {
+                        "type": "string",
+                        "description": "IANA 时区名称，例如 Asia/Shanghai、UTC、America/New_York。默认 Asia/Shanghai。",
+                    },
+                    "format": {
+                        "type": "string",
+                        "enum": ["full", "date", "time"],
+                        "description": "返回信息粒度。full 返回完整日期时间；date 偏日期；time 偏时间。",
+                    },
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "calculate_expression",
+            "description": "安全计算确定性数学表达式。用户询问四则运算、百分比、括号、幂、取模等精确计算时使用；不要使用模型心算。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "expression": {
+                        "type": "string",
+                        "description": "数学表达式，例如 398 * 17.5 / 100、(12 + 8) * 3、2 ** 10。",
+                    }
+                },
+                "required": ["expression"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "convert_units",
+            "description": "进行确定性单位换算。支持常见长度、重量、面积、体积、数据大小和温度单位。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "value": {"type": "number", "description": "要换算的数值。"},
+                    "from_unit": {"type": "string", "description": "源单位，例如 cm、厘米、kg、摄氏度、MB。"},
+                    "to_unit": {"type": "string", "description": "目标单位，例如 m、米、lb、华氏度、GB。"},
+                },
+                "required": ["value", "from_unit", "to_unit"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "calendar_info",
+            "description": "查询日期对应星期、闰年、当月天数，或进行日期加减。用户询问某天星期几、下周几是哪天、几天后日期等日历问题时使用。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "基准日期，格式 YYYY-MM-DD；不传则按 timezone 取今天。",
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "description": "未传 date 时用于确定今天的 IANA 时区。默认 Asia/Shanghai。",
+                    },
+                    "operation": {
+                        "type": "string",
+                        "enum": ["info", "add_days"],
+                        "description": "info 返回日期信息；add_days 在基准日期上加减天数。",
+                    },
+                    "days_delta": {
+                        "type": "integer",
+                        "description": "operation 为 add_days 时使用；正数表示往后，负数表示往前。",
+                    },
+                },
             },
         },
     },
@@ -182,6 +271,215 @@ async def execute_chat_tool(
     """
     settings = get_settings()
 
+    def _helper_decimal_to_text(value: Decimal) -> str:
+        """函数作用：把 Decimal 结果格式化为适合工具返回的字符串。
+        输入参数：value - Decimal 数值。
+        输出参数：去掉无意义尾零后的字符串。
+        """
+        normalized = value.normalize()
+        if normalized == normalized.to_integral():
+            return str(normalized.quantize(Decimal("1")))
+        return format(normalized, "f")
+
+    def _helper_eval_decimal_expression(expression_text: str) -> Decimal:
+        """函数作用：安全解析并计算数学表达式。
+        输入参数：expression_text - 用户或模型传入的数学表达式。
+        输出参数：Decimal 计算结果。
+        """
+        normalized_expression = expression_text.replace("×", "*").replace("÷", "/").replace("^", "**")
+        normalized_expression = re.sub(r"(\d+(?:\.\d+)?)\s*%", r"(\1/100)", normalized_expression)
+        tree = ast.parse(normalized_expression, mode="eval")
+
+        def _helper_eval_node(node) -> Decimal:
+            if isinstance(node, ast.Expression):
+                return _helper_eval_node(node.body)
+            if isinstance(node, ast.Constant) and isinstance(node.value, int | float):
+                return Decimal(str(node.value))
+            if isinstance(node, ast.UnaryOp):
+                operand = _helper_eval_node(node.operand)
+                if isinstance(node.op, ast.UAdd):
+                    return operand
+                if isinstance(node.op, ast.USub):
+                    return -operand
+            if isinstance(node, ast.BinOp):
+                left = _helper_eval_node(node.left)
+                right = _helper_eval_node(node.right)
+                if isinstance(node.op, ast.Add):
+                    return left + right
+                if isinstance(node.op, ast.Sub):
+                    return left - right
+                if isinstance(node.op, ast.Mult):
+                    return left * right
+                if isinstance(node.op, ast.Div):
+                    if right == 0:
+                        raise ValueError("除数不能为 0")
+                    return left / right
+                if isinstance(node.op, ast.Mod):
+                    if right == 0:
+                        raise ValueError("取模除数不能为 0")
+                    return left % right
+                if isinstance(node.op, ast.Pow):
+                    if right != right.to_integral():
+                        raise ValueError("幂运算指数必须是整数")
+                    if abs(int(right)) > 1000:
+                        raise ValueError("幂运算指数过大")
+                    return left**int(right)
+            raise ValueError("表达式包含不支持的内容")
+
+        return _helper_eval_node(tree)
+
+    def _helper_parse_decimal(value) -> Decimal:
+        """函数作用：把工具参数中的数字转为 Decimal。
+        输入参数：value - 数字或数字字符串。
+        输出参数：Decimal 数值。
+        """
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, ValueError):
+            raise ValueError("value 必须是有效数字") from None
+
+    def _helper_normalize_unit(unit_text: str) -> str:
+        """函数作用：归一化单位别名。
+        输入参数：unit_text - 原始单位文本。
+        输出参数：内部标准单位名。
+        """
+        aliases = {
+            "毫米": "mm",
+            "millimeter": "mm",
+            "millimeters": "mm",
+            "厘米": "cm",
+            "公分": "cm",
+            "centimeter": "cm",
+            "centimeters": "cm",
+            "米": "m",
+            "公尺": "m",
+            "meter": "m",
+            "meters": "m",
+            "公里": "km",
+            "千米": "km",
+            "kilometer": "km",
+            "kilometers": "km",
+            "英寸": "in",
+            "inch": "in",
+            "inches": "in",
+            "英尺": "ft",
+            "foot": "ft",
+            "feet": "ft",
+            "码": "yd",
+            "yard": "yd",
+            "yards": "yd",
+            "英里": "mi",
+            "mile": "mi",
+            "miles": "mi",
+            "毫克": "mg",
+            "milligram": "mg",
+            "milligrams": "mg",
+            "克": "g",
+            "gram": "g",
+            "grams": "g",
+            "千克": "kg",
+            "公斤": "kg",
+            "kilogram": "kg",
+            "kilograms": "kg",
+            "磅": "lb",
+            "pound": "lb",
+            "pounds": "lb",
+            "盎司": "oz",
+            "ounce": "oz",
+            "ounces": "oz",
+            "平方米": "m2",
+            "平米": "m2",
+            "平方厘米": "cm2",
+            "平方公里": "km2",
+            "平方英尺": "ft2",
+            "毫升": "ml",
+            "milliliter": "ml",
+            "milliliters": "ml",
+            "升": "l",
+            "liter": "l",
+            "liters": "l",
+            "立方米": "m3",
+            "加仑": "gal",
+            "gallon": "gal",
+            "gallons": "gal",
+            "摄氏度": "c",
+            "摄氏": "c",
+            "celsius": "c",
+            "华氏度": "f",
+            "华氏": "f",
+            "fahrenheit": "f",
+            "开尔文": "k",
+            "kelvin": "k",
+        }
+        cleaned_unit = unit_text.strip().lower().replace("²", "2").replace("³", "3")
+        return aliases.get(cleaned_unit, cleaned_unit)
+
+    def _helper_convert_units(value: Decimal, from_unit: str, to_unit: str) -> dict:
+        """函数作用：执行常见单位换算。
+        输入参数：value - 待换算数值；from_unit - 源单位；to_unit - 目标单位。
+        输出参数：换算结果字典。
+        """
+        unit_groups = {
+            "length": {
+                "mm": Decimal("0.001"),
+                "cm": Decimal("0.01"),
+                "m": Decimal("1"),
+                "km": Decimal("1000"),
+                "in": Decimal("0.0254"),
+                "ft": Decimal("0.3048"),
+                "yd": Decimal("0.9144"),
+                "mi": Decimal("1609.344"),
+            },
+            "mass": {
+                "mg": Decimal("0.000001"),
+                "g": Decimal("0.001"),
+                "kg": Decimal("1"),
+                "lb": Decimal("0.45359237"),
+                "oz": Decimal("0.028349523125"),
+            },
+            "area": {
+                "cm2": Decimal("0.0001"),
+                "m2": Decimal("1"),
+                "km2": Decimal("1000000"),
+                "ft2": Decimal("0.09290304"),
+            },
+            "volume": {
+                "ml": Decimal("0.001"),
+                "l": Decimal("1"),
+                "m3": Decimal("1000"),
+                "gal": Decimal("3.785411784"),
+            },
+            "data_size": {
+                "b": Decimal("1"),
+                "kb": Decimal("1024"),
+                "mb": Decimal("1048576"),
+                "gb": Decimal("1073741824"),
+                "tb": Decimal("1099511627776"),
+            },
+        }
+
+        if from_unit in {"c", "f", "k"} or to_unit in {"c", "f", "k"}:
+            if from_unit not in {"c", "f", "k"} or to_unit not in {"c", "f", "k"}:
+                raise ValueError("温度单位只能与温度单位互相换算")
+            kelvin = value + Decimal("273.15")
+            if from_unit == "f":
+                kelvin = (value - Decimal("32")) * Decimal("5") / Decimal("9") + Decimal("273.15")
+            if from_unit == "k":
+                kelvin = value
+            result = kelvin - Decimal("273.15")
+            if to_unit == "f":
+                result = (kelvin - Decimal("273.15")) * Decimal("9") / Decimal("5") + Decimal("32")
+            if to_unit == "k":
+                result = kelvin
+            return {"category": "temperature", "result": result}
+
+        for category, units in unit_groups.items():
+            if from_unit in units and to_unit in units:
+                base_value = value * units[from_unit]
+                return {"category": category, "result": base_value / units[to_unit]}
+
+        raise ValueError("不支持的单位或源单位与目标单位类型不一致")
+
     if tool_name == "search_session_memory":
         query = str(arguments.get("query") or "").strip()
         limit = int(arguments.get("limit") or 5)
@@ -247,6 +545,101 @@ async def execute_chat_tool(
                 }
                 for index, message in enumerate(messages, start=1)
             ],
+        }
+
+    if tool_name == "get_current_datetime":
+        timezone_name = str(arguments.get("timezone") or "Asia/Shanghai").strip()
+        response_format = str(arguments.get("format") or "full").strip()
+        if response_format not in {"full", "date", "time"}:
+            return {"error": "format 只能是 full、date 或 time"}
+        try:
+            current_datetime = datetime.now(ZoneInfo(timezone_name))
+        except ZoneInfoNotFoundError:
+            return {"error": "timezone 必须是有效的 IANA 时区名称"}
+
+        weekday_zh_list = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+        return {
+            "timezone": timezone_name,
+            "format": response_format,
+            "iso_datetime": current_datetime.isoformat(),
+            "date": current_datetime.date().isoformat(),
+            "time": current_datetime.strftime("%H:%M:%S"),
+            "year": current_datetime.year,
+            "month": current_datetime.month,
+            "day": current_datetime.day,
+            "weekday": current_datetime.strftime("%A"),
+            "weekday_zh": weekday_zh_list[current_datetime.weekday()],
+            "utc_offset": current_datetime.strftime("%z")[:3] + ":" + current_datetime.strftime("%z")[3:],
+        }
+
+    if tool_name == "calculate_expression":
+        expression = str(arguments.get("expression") or "").strip()
+        if not expression:
+            return {"error": "expression 不能为空"}
+        try:
+            result = _helper_eval_decimal_expression(expression)
+        except (SyntaxError, ValueError, InvalidOperation, OverflowError) as exc:
+            return {"error": f"表达式无法计算：{exc}"}
+        return {
+            "expression": expression,
+            "result": _helper_decimal_to_text(result),
+        }
+
+    if tool_name == "convert_units":
+        try:
+            value = _helper_parse_decimal(arguments.get("value"))
+            from_unit = _helper_normalize_unit(str(arguments.get("from_unit") or ""))
+            to_unit = _helper_normalize_unit(str(arguments.get("to_unit") or ""))
+            if not from_unit or not to_unit:
+                return {"error": "from_unit 和 to_unit 不能为空"}
+            conversion = _helper_convert_units(value, from_unit, to_unit)
+        except ValueError as exc:
+            return {"error": str(exc)}
+        return {
+            "value": _helper_decimal_to_text(value),
+            "from_unit": from_unit,
+            "to_unit": to_unit,
+            "category": conversion["category"],
+            "result": _helper_decimal_to_text(conversion["result"]),
+        }
+
+    if tool_name == "calendar_info":
+        timezone_name = str(arguments.get("timezone") or "Asia/Shanghai").strip()
+        operation = str(arguments.get("operation") or "info").strip()
+        if operation not in {"info", "add_days"}:
+            return {"error": "operation 只能是 info 或 add_days"}
+
+        date_text = str(arguments.get("date") or "").strip()
+        try:
+            if date_text:
+                base_date = date.fromisoformat(date_text)
+            else:
+                base_date = datetime.now(ZoneInfo(timezone_name)).date()
+        except ValueError:
+            return {"error": "date 必须是 YYYY-MM-DD 格式"}
+        except ZoneInfoNotFoundError:
+            return {"error": "timezone 必须是有效的 IANA 时区名称"}
+
+        target_date = base_date
+        days_delta = 0
+        if operation == "add_days":
+            days_delta = int(arguments.get("days_delta") or 0)
+            target_date = base_date + timedelta(days=days_delta)
+
+        weekday_zh_list = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+        _, days_in_month = calendar.monthrange(target_date.year, target_date.month)
+        return {
+            "operation": operation,
+            "base_date": base_date.isoformat(),
+            "days_delta": days_delta,
+            "date": target_date.isoformat(),
+            "year": target_date.year,
+            "month": target_date.month,
+            "day": target_date.day,
+            "weekday": target_date.strftime("%A"),
+            "weekday_zh": weekday_zh_list[target_date.weekday()],
+            "is_leap_year": calendar.isleap(target_date.year),
+            "days_in_month": days_in_month,
         }
 
     if tool_name == "web_search":

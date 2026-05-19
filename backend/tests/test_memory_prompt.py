@@ -22,6 +22,13 @@ def test_chat_system_prompt_contains_balanced_tool_and_memory_rules():
     assert "get_session_messages_by_position" in prompt
     assert "不要用 search_session_memory 猜" in prompt
     assert "先 search_session_memory" in prompt
+    assert "基础确定性工具" in prompt
+    assert "get_current_datetime" in prompt
+    assert "calculate_expression" in prompt
+    assert "convert_units" in prompt
+    assert "calendar_info" in prompt
+    assert "不要依赖模型记忆猜测" in prompt
+    assert "这些本地确定性问题不需要 web_search" in prompt
     assert "只有工具调用成功后" in prompt
     assert "不要说“我已经记住了”" in prompt
     assert "敏感信息" in prompt

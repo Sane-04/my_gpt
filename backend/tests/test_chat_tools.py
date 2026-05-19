@@ -166,6 +166,142 @@ def test_execute_get_session_messages_by_position_tool(monkeypatch):
     }
 
 
+def test_get_chat_tools_contains_basic_deterministic_tools():
+    """函数作用：验证默认聊天工具包含基础确定性工具。
+    输入参数：无。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    tool_names = {tool["function"]["name"] for tool in chat_tools.get_chat_tools()}
+
+    assert "get_current_datetime" in tool_names
+    assert "calculate_expression" in tool_names
+    assert "convert_units" in tool_names
+    assert "calendar_info" in tool_names
+
+
+def test_execute_get_current_datetime_tool():
+    """函数作用：验证 get_current_datetime 工具返回指定时区的当前日期时间结构。
+    输入参数：无。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="get_current_datetime",
+            arguments={"timezone": "Asia/Shanghai"},
+        )
+    )
+
+    assert result["timezone"] == "Asia/Shanghai"
+    assert result["date"]
+    assert result["time"]
+    assert result["weekday_zh"].startswith("星期")
+    assert result["utc_offset"] == "+08:00"
+
+
+def test_execute_calculate_expression_tool():
+    """函数作用：验证 calculate_expression 工具能安全计算表达式并拒绝危险内容。
+    输入参数：无。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="calculate_expression",
+            arguments={"expression": "398 * 17.5%"},
+        )
+    )
+    unsafe_result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="calculate_expression",
+            arguments={"expression": "__import__('os').system('echo bad')"},
+        )
+    )
+
+    assert result == {"expression": "398 * 17.5%", "result": "69.65"}
+    assert "error" in unsafe_result
+
+
+def test_execute_convert_units_tool():
+    """函数作用：验证 convert_units 工具支持常见单位和温度换算。
+    输入参数：无。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    length_result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="convert_units",
+            arguments={"value": 100, "from_unit": "厘米", "to_unit": "米"},
+        )
+    )
+    temperature_result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="convert_units",
+            arguments={"value": 0, "from_unit": "摄氏度", "to_unit": "华氏度"},
+        )
+    )
+
+    assert length_result == {
+        "value": "100",
+        "from_unit": "cm",
+        "to_unit": "m",
+        "category": "length",
+        "result": "1",
+    }
+    assert temperature_result["category"] == "temperature"
+    assert temperature_result["result"] == "32"
+
+
+def test_execute_calendar_info_tool():
+    """函数作用：验证 calendar_info 工具返回日期信息并支持日期加减。
+    输入参数：无。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    info_result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="calendar_info",
+            arguments={"date": "2026-05-19"},
+        )
+    )
+    add_result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="calendar_info",
+            arguments={"date": "2026-05-19", "operation": "add_days", "days_delta": 7},
+        )
+    )
+
+    assert info_result["date"] == "2026-05-19"
+    assert info_result["weekday_zh"] == "星期二"
+    assert info_result["is_leap_year"] is False
+    assert info_result["days_in_month"] == 31
+    assert add_result["date"] == "2026-05-26"
+
+
 def test_execute_web_search_tool(monkeypatch):
     """函数作用：验证 web_search 工具会返回带来源链接的结构化搜索结果。
     输入参数：monkeypatch - pytest monkeypatch fixture。
