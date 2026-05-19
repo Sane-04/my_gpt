@@ -13,10 +13,9 @@ const props = defineProps<{
 
 const isSpeaking = ref(false)
 const isSpeechSynthesisSupported = computed(() => typeof window !== 'undefined' && 'speechSynthesis' in window)
-const canSpeakMessage = computed(() => (
+const shouldShowSpeakButton = computed(() => (
   props.message.role === 'assistant'
   && props.message.content.trim().length > 0
-  && isSpeechSynthesisSupported.value
 ))
 
 // 只有助手消息需要 Markdown 渲染；用户消息保持纯文本，避免不必要的 HTML 注入面。
@@ -147,7 +146,7 @@ function stopSpeaking() {
 
 /** 函数作用：朗读或停止朗读助手消息；输入参数：无；输出参数：无返回值。 */
 function toggleSpeaking() {
-  if (!canSpeakMessage.value) {
+  if (!shouldShowSpeakButton.value || !isSpeechSynthesisSupported.value) {
     return
   }
 
@@ -208,10 +207,14 @@ onBeforeUnmount(() => {
       <div v-if="message.role === 'assistant'" class="markdown-body" @click="handleMarkdownClick" v-html="renderedContent" />
       <div v-else class="whitespace-pre-wrap break-words">{{ message.content }}</div>
 
-      <div v-if="canSpeakMessage" class="mt-3 flex justify-end">
+      <div v-if="shouldShowSpeakButton" class="mt-3 flex justify-end">
         <IconButton
-          :label="isSpeaking ? '停止朗读' : '朗读回答'"
-          :class="{ 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800': isSpeaking }"
+          :label="isSpeechSynthesisSupported ? (isSpeaking ? '停止朗读' : '朗读回答') : '当前浏览器不支持朗读'"
+          :disabled="!isSpeechSynthesisSupported"
+          :class="{
+            'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800': isSpeaking,
+            'opacity-40': !isSpeechSynthesisSupported,
+          }"
           @click="toggleSpeaking"
         >
           <VolumeX v-if="isSpeaking" class="size-4" />
