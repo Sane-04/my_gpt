@@ -63,6 +63,7 @@ textarea {
 .markdown-body blockquote,
 .markdown-body hr,
 .markdown-body pre,
+.markdown-body .math-block,
 .markdown-body .code-block {
   margin: 0.75rem 0;
 }
@@ -153,6 +154,27 @@ textarea {
   background: transparent;
   padding: 0;
   color: #f4f4f5;
+}
+
+/* 数学公式使用 KaTeX 渲染；块级公式允许横向滚动，避免移动端撑破消息气泡。 */
+.markdown-body .math-block {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+
+.markdown-body .math-inline {
+  overflow-wrap: normal;
+}
+
+.markdown-body .katex {
+  font-size: 1.03em;
+}
+
+.markdown-body .math-fallback {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  color: #3f3f46;
 }
 
 .code-copy-button {

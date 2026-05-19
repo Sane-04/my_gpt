@@ -5,6 +5,8 @@ import App from './App.vue'
 import router from './router'
 import { AUTH_EXPIRED_EVENT } from './api/http'
 import { useAuthStore } from './stores/auth'
+import 'highlight.js/styles/github-dark.css'
+import 'katex/dist/katex.min.css'
 import './styles/main.css'
 
 // 创建单例 Pinia，先恢复登录态，再挂载路由，确保守卫读取到最新 auth 状态。
