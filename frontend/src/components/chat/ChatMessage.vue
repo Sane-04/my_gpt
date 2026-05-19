@@ -12,11 +12,27 @@ const props = defineProps<{
 }>()
 
 const isSpeaking = ref(false)
-const isSpeechSynthesisSupported = computed(() => typeof window !== 'undefined' && 'speechSynthesis' in window)
+const speechSynthesisError = ref('')
+const isSpeechSynthesisSupported = computed(() => (
+  typeof window !== 'undefined'
+  && 'speechSynthesis' in window
+  && 'SpeechSynthesisUtterance' in window
+))
 const shouldShowSpeakButton = computed(() => (
   props.message.role === 'assistant'
   && props.message.content.trim().length > 0
 ))
+const speechSynthesisStatusText = computed(() => {
+  if (speechSynthesisError.value) {
+    return speechSynthesisError.value
+  }
+
+  if (shouldShowSpeakButton.value && !isSpeechSynthesisSupported.value) {
+    return '当前浏览器不支持朗读'
+  }
+
+  return ''
+})
 
 // 只有助手消息需要 Markdown 渲染；用户消息保持纯文本，避免不必要的 HTML 注入面。
 const renderedContent = computed(() => {
@@ -146,7 +162,12 @@ function stopSpeaking() {
 
 /** 函数作用：朗读或停止朗读助手消息；输入参数：无；输出参数：无返回值。 */
 function toggleSpeaking() {
-  if (!shouldShowSpeakButton.value || !isSpeechSynthesisSupported.value) {
+  if (!shouldShowSpeakButton.value) {
+    return
+  }
+
+  if (!isSpeechSynthesisSupported.value) {
+    speechSynthesisError.value = '当前浏览器不支持朗读'
     return
   }
 
@@ -155,17 +176,24 @@ function toggleSpeaking() {
     return
   }
 
-  window.speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(props.message.content)
-  utterance.lang = 'zh-CN'
-  utterance.onend = () => {
+  try {
+    speechSynthesisError.value = ''
+    window.speechSynthesis.cancel()
+    const utterance = new window.SpeechSynthesisUtterance(props.message.content)
+    utterance.lang = 'zh-CN'
+    utterance.onend = () => {
+      isSpeaking.value = false
+    }
+    utterance.onerror = () => {
+      isSpeaking.value = false
+      speechSynthesisError.value = '朗读失败，请检查浏览器语音播放权限'
+    }
+    isSpeaking.value = true
+    window.speechSynthesis.speak(utterance)
+  } catch {
     isSpeaking.value = false
+    speechSynthesisError.value = '朗读启动失败，请换浏览器重试'
   }
-  utterance.onerror = () => {
-    isSpeaking.value = false
-  }
-  isSpeaking.value = true
-  window.speechSynthesis.speak(utterance)
 }
 
 onBeforeUnmount(() => {
@@ -220,6 +248,9 @@ onBeforeUnmount(() => {
           <VolumeX v-if="isSpeaking" class="size-4" />
           <Volume2 v-else class="size-4" />
         </IconButton>
+      </div>
+      <div v-if="speechSynthesisStatusText" class="mt-2 text-right text-xs text-red-600">
+        {{ speechSynthesisStatusText }}
       </div>
 
       <div v-if="message.images?.length" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">

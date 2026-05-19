@@ -14,6 +14,15 @@ describe('ChatMessage', () => {
         speak: vi.fn(),
       },
     })
+    Object.defineProperty(window, 'SpeechSynthesisUtterance', {
+      configurable: true,
+      value: vi.fn().mockImplementation((text: string) => ({
+        text,
+        lang: '',
+        onend: null,
+        onerror: null,
+      })),
+    })
   })
 
   it('助手消息处理工具时展示处理状态', () => {
