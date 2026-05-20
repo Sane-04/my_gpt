@@ -33,3 +33,10 @@ window.addEventListener(AUTH_EXPIRED_EVENT, () => {
 })
 
 createApp(App).use(pinia).use(router).mount('#app')
+
+// 生产环境注册 PWA Service Worker，让手机可以把站点安装到主屏幕。
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/sw.js')
+  })
+}

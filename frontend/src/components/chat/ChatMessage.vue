@@ -229,7 +229,7 @@ onBeforeUnmount(() => {
   >
     <div
       v-if="message.role !== 'user'"
-      class="mt-1 size-8 shrink-0 overflow-hidden rounded-md bg-zinc-100"
+      class="mt-1 size-8 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800"
     >
       <img src="/cow.jpg" alt="助手头像" class="size-full object-cover" />
     </div>
@@ -237,8 +237,8 @@ onBeforeUnmount(() => {
     <div
       class="min-w-0 max-w-[min(720px,100%)] rounded-lg px-4 py-3 text-sm leading-6"
       :class="{
-        'bg-zinc-950 text-white': message.role === 'user',
-        'border border-zinc-200 bg-white text-zinc-900 shadow-sm': message.role !== 'user',
+        'bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950': message.role === 'user',
+        'border border-zinc-200 bg-white text-zinc-900 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100': message.role !== 'user',
       }"
     >
       <!-- renderedContent 来自 markdown-it，且 html=false；这里仅用于展示受控 Markdown。 -->
@@ -297,7 +297,7 @@ onBeforeUnmount(() => {
 
     <div
       v-if="message.role === 'user'"
-      class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-600"
+      class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
     >
       <User class="size-4" />
     </div>

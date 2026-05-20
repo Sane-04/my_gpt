@@ -86,7 +86,7 @@ watch(
 <template>
   <div
     ref="scrollContainer"
-    class="min-h-0 flex-1 overflow-y-auto bg-zinc-50"
+    class="min-h-0 flex-1 overflow-y-auto bg-zinc-50 dark:bg-zinc-900"
     @scroll="handleScroll"
   >
     <div v-if="messages.length === 0" class="flex min-h-full items-center justify-center">
@@ -98,7 +98,7 @@ watch(
     </div>
 
     <div v-else class="space-y-5 p-4 sm:p-6">
-      <div v-if="isLoadingOlder" class="py-1 text-center text-xs text-zinc-400">正在加载更早消息...</div>
+      <div v-if="isLoadingOlder" class="py-1 text-center text-xs text-zinc-400 dark:text-zinc-500">正在加载更早消息...</div>
       <ChatMessage v-for="message in messages" :key="message.id" :message="message" />
     </div>
   </div>

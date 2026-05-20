@@ -324,17 +324,17 @@ watch(
 </script>
 
 <template>
-  <form class="rounded-2xl border border-zinc-200 bg-white px-3 py-1.5 shadow-sm" @submit.prevent="handleSubmit">
+  <form class="rounded-2xl border border-zinc-200 bg-white px-3 py-1.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950" @submit.prevent="handleSubmit">
     <div v-if="images.length" class="mb-3 flex flex-wrap gap-2">
       <div
         v-for="(image, index) in images"
         :key="`${image.name}-${index}`"
-        class="relative size-20 overflow-hidden rounded-md border border-zinc-200 bg-zinc-50"
+        class="relative size-20 overflow-hidden rounded-md border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
       >
         <img :src="image.dataUrl" :alt="image.name" class="size-full object-cover" />
         <button
           type="button"
-          class="absolute right-1 top-1 inline-flex size-6 items-center justify-center rounded-md bg-white/90 text-zinc-700 shadow-sm transition hover:bg-white hover:text-zinc-950"
+          class="absolute right-1 top-1 inline-flex size-6 items-center justify-center rounded-md bg-white/90 text-zinc-700 shadow-sm transition hover:bg-white hover:text-zinc-950 dark:bg-zinc-950/90 dark:text-zinc-200 dark:hover:bg-zinc-900 dark:hover:text-white"
           :aria-label="`移除 ${image.name}`"
           @click="removeImage(index)"
         >
@@ -360,7 +360,7 @@ watch(
         v-model="content"
         rows="1"
         placeholder="勇敢牛牛，不怕困难！"
-        class="max-h-40 min-h-10 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-2.5 text-sm leading-5 outline-none placeholder:text-zinc-400"
+        class="max-h-40 min-h-10 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-2.5 text-sm leading-5 text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-zinc-50 dark:placeholder:text-zinc-500"
         :disabled="isStreaming"
         @keydown="handleKeydown"
         @paste="handlePaste"

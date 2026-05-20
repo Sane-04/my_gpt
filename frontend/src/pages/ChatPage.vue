@@ -119,7 +119,7 @@ onMounted(() => {
 <template>
   <main class="relative flex h-screen min-h-0 flex-col overflow-hidden">
     <IconButton
-      class="absolute left-3 top-3 z-20 bg-white/90 shadow-sm lg:hidden"
+      class="absolute left-3 top-3 z-20 bg-white/90 shadow-sm dark:bg-zinc-950/90 lg:hidden"
       label="打开侧栏"
       @click="uiStore.openSidebar()"
     >
@@ -138,7 +138,7 @@ onMounted(() => {
         :load-older-messages="handleLoadOlderMessages"
       />
 
-      <div class="sticky bottom-0 shrink-0 bg-zinc-50 py-4">
+      <div class="sticky bottom-0 shrink-0 bg-zinc-50 pt-4 pb-[calc(1rem+var(--app-safe-area-bottom))] dark:bg-zinc-900">
         <MessageComposer :is-streaming="isStreaming" @send="handleSend" @stop="messagesStore.stopStreaming()" />
       </div>
     </section>

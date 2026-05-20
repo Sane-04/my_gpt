@@ -106,22 +106,22 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-50 text-zinc-950">
+  <div class="min-h-screen bg-zinc-50 text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
     <!-- 移动端侧栏遮罩，点击空白处关闭侧栏。 -->
     <div
       v-if="isSidebarOpen"
-      class="fixed inset-0 z-30 bg-zinc-950/30 lg:hidden"
+      class="fixed inset-0 z-30 bg-zinc-950/30 dark:bg-black/50 lg:hidden"
       @click="uiStore.closeSidebar()"
     />
 
     <!-- 应用主侧栏：桌面端固定展示，移动端由 uiStore 控制折叠。 -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-zinc-200 bg-white transition-transform duration-200"
+      class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-zinc-200 bg-white transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-950"
       :class="{ 'translate-x-0': isSidebarOpen }"
     >
-      <div class="flex h-14 items-center justify-between border-b border-zinc-200 px-4">
+      <div class="flex h-14 items-center justify-between border-b border-zinc-200 px-4 dark:border-zinc-800">
         <RouterLink to="/chat" class="flex items-center gap-2 text-sm font-semibold">
-          <span class="size-8 overflow-hidden rounded-md bg-zinc-100">
+          <span class="size-8 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800">
             <img src="/cow.jpg" alt="应用头像" class="size-full object-cover" />
           </span>
           My GPT FROM SANE
@@ -131,10 +131,10 @@ async function handleLogout() {
         </IconButton>
       </div>
 
-      <div class="border-b border-zinc-200 p-3">
+      <div class="border-b border-zinc-200 p-3 dark:border-zinc-800">
         <button
           type="button"
-          class="flex h-10 w-full items-center gap-2 rounded-md bg-transparent px-3 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100"
+          class="flex h-10 w-full items-center gap-2 rounded-md bg-transparent px-3 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800"
           @click="handleCreateConversation"
         >
           <MessageSquarePlus class="size-4" />
@@ -143,21 +143,21 @@ async function handleLogout() {
       </div>
 
       <nav class="flex-1 overflow-y-auto p-3">
-        <div class="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-zinc-400">会话</div>
+        <div class="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">会话</div>
         <div
           v-for="conversation in items"
           :key="conversation.id"
-          class="group mb-1 flex items-center gap-1 rounded-md transition hover:bg-zinc-100"
+          class="group mb-1 flex items-center gap-1 rounded-md transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
           :class="{
-            'bg-zinc-100': activeConversationId === conversation.id,
+            'bg-zinc-100 dark:bg-zinc-800': activeConversationId === conversation.id,
           }"
         >
           <RouterLink
             :to="`/chat/${conversation.id}`"
             class="min-w-0 flex-1 truncate px-3 py-2 text-sm"
             :class="{
-              'font-medium text-zinc-950': activeConversationId === conversation.id,
-              'text-zinc-600': activeConversationId !== conversation.id,
+              'font-medium text-zinc-950 dark:text-zinc-50': activeConversationId === conversation.id,
+              'text-zinc-600 dark:text-zinc-300': activeConversationId !== conversation.id,
             }"
           >
             {{ conversation.title }}
@@ -173,29 +173,29 @@ async function handleLogout() {
       </nav>
 
       <!-- 用户状态区：展示当前登录用户并提供退出入口。 -->
-      <div class="border-t border-zinc-200 p-3">
+      <div class="border-t border-zinc-200 p-3 dark:border-zinc-800">
         <RouterLink
           to="/memories"
-          class="flex h-10 items-center gap-2 rounded-md px-3 text-sm text-zinc-700 transition hover:bg-zinc-100"
+          class="flex h-10 items-center gap-2 rounded-md px-3 text-sm text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <Brain class="size-4" />
           长期记忆
         </RouterLink>
-        <div class="mt-3 rounded-md border border-zinc-200 bg-zinc-50 p-3">
+        <div class="mt-3 rounded-md border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
           <div class="flex items-center gap-2">
-            <UserCircle class="size-5 text-zinc-500" />
+            <UserCircle class="size-5 text-zinc-500 dark:text-zinc-400" />
             <div class="min-w-0">
-              <div class="truncate text-sm font-medium text-zinc-800">
+              <div class="truncate text-sm font-medium text-zinc-800 dark:text-zinc-100">
                 {{ user?.displayName ?? '未登录用户' }}
               </div>
-              <div class="truncate text-xs text-zinc-500">
+              <div class="truncate text-xs text-zinc-500 dark:text-zinc-400">
                 {{ user?.email ?? '请先登录' }}
               </div>
             </div>
           </div>
           <button
             type="button"
-            class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-md border border-zinc-200 bg-white text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
+            class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-md border border-zinc-200 bg-white text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800"
             @click="handleLogout"
           >
             <LogOut class="size-4" />
@@ -211,7 +211,7 @@ async function handleLogout() {
     >
       <IconButton
         v-if="!isSidebarOpen"
-        class="fixed left-3 top-3 z-30 hidden bg-white/90 shadow-sm lg:inline-flex"
+        class="fixed left-3 top-3 z-30 hidden bg-white/90 shadow-sm dark:bg-zinc-950/90 lg:inline-flex"
         label="打开侧栏"
         @click="uiStore.openSidebar()"
       >
@@ -221,7 +221,7 @@ async function handleLogout() {
       <!-- 顶部状态栏承载移动菜单按钮和当前页面轻量状态。 -->
       <header
         v-if="shouldShowHeader"
-        class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-zinc-200 bg-white/90 px-3 backdrop-blur sm:px-5"
+        class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-zinc-200 bg-white/90 px-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90 sm:px-5"
       >
         <div class="flex min-w-0 items-center gap-2">
           <IconButton class="lg:hidden" label="打开侧栏" @click="uiStore.openSidebar()">
