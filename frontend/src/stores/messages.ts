@@ -128,6 +128,19 @@ export const useMessagesStore = defineStore('messages', {
       message.sources = sources
       message.citationGroups = citationGroups
     },
+    /** 函数作用：把生成图片追加到助手消息；输入参数：conversationId、messageId、image、fallbackContent；输出参数：无返回值。 */
+    appendAssistantImage(conversationId: string, messageId: string, image: NonNullable<Message['images']>[number], fallbackContent: string) {
+      const message = this.itemsByConversationId[conversationId]?.find((item) => item.id === messageId)
+
+      if (!message) {
+        return
+      }
+
+      message.images = [...(message.images ?? []), image]
+      if (!message.content.trim()) {
+        message.content = fallbackContent
+      }
+    },
     /** 函数作用：更新助手消息状态；输入参数：conversationId、messageId、status；输出参数：无返回值。 */
     markAssistantMessage(conversationId: string, messageId: string, status: Message['status']) {
       const message = this.itemsByConversationId[conversationId]?.find((item) => item.id === messageId)
@@ -264,6 +277,22 @@ export const useMessagesStore = defineStore('messages', {
 
             const event = JSON.parse(line) as ChatStreamEvent
 
+            if (event.type === 'intent_started') {
+              this.setAssistantProcessingText(input.conversationId, assistantMessage.id, '正在识别用户意图...')
+            }
+
+            if (event.type === 'intent_finished') {
+              this.setAssistantProcessingText(
+                input.conversationId,
+                assistantMessage.id,
+                event.intent === 'image_generate'
+                  ? `识别为图片生成：${event.message ?? '准备生成图片...'}`
+                  : event.intent === 'image_edit'
+                    ? `识别为图片编辑：${event.message ?? '准备编辑图片...'}`
+                    : '识别为普通聊天，正在组织回答...',
+              )
+            }
+
             // delta 事件只追加文本，不结束当前助手消息。
             if (event.type === 'delta' && event.delta) {
               this.appendAssistantDelta(input.conversationId, assistantMessage.id, event.delta)
@@ -277,7 +306,11 @@ export const useMessagesStore = defineStore('messages', {
                   ? '正在搜索网页...'
                   : event.toolName === 'get_weather'
                     ? '正在查询天气...'
-                    : '正在处理...',
+                    : event.toolName === 'image_generation'
+                      ? '正在生成图片...'
+                      : event.toolName === 'image_edit'
+                        ? '正在编辑图片...'
+                        : '正在处理...',
               )
             }
 
@@ -287,6 +320,10 @@ export const useMessagesStore = defineStore('messages', {
 
             if (event.type === 'sources') {
               this.setAssistantSources(input.conversationId, assistantMessage.id, event.sources ?? [], event.citationGroups ?? [])
+            }
+
+            if (event.type === 'image' && event.image) {
+              this.appendAssistantImage(input.conversationId, assistantMessage.id, event.image, event.message ?? '已生成图片。')
             }
 
             if (event.type === 'error') {

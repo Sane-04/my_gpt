@@ -276,6 +276,117 @@ def test_model_client_creates_embedding(monkeypatch):
     assert fake_http.requests[0][2]["json"] == {"model": "embedding-model", "input": "你好"}
 
 
+def test_model_client_creates_non_streaming_chat_completion(monkeypatch):
+    """函数作用：验证非流式 Chat Completions 请求会携带 response_format。"""
+    fake_http = install_fake_http(
+        monkeypatch,
+        post_responses=[FakeHttpResponse(json_data={"choices": [{"message": {"content": "{}"}}]})],
+    )
+
+    async def _helper_create():
+        client = ChatCompletionsModelClient(
+            api_key="key",
+            base_url="https://example.test/v1",
+            model="test-model",
+        )
+        return await client.create_chat_completion(
+            [{"role": "user", "content": "route"}],
+            response_format={"type": "json_object"},
+        )
+
+    response = asyncio.run(_helper_create())
+
+    assert response == {"choices": [{"message": {"content": "{}"}}]}
+    assert fake_http.requests[0][1] == "https://example.test/v1/chat/completions"
+    assert fake_http.requests[0][2]["json"] == {
+        "model": "test-model",
+        "messages": [{"role": "user", "content": "route"}],
+        "stream": False,
+        "response_format": {"type": "json_object"},
+    }
+
+
+def test_model_client_generates_image(monkeypatch):
+    """函数作用：验证 Image API 文生图请求和响应解析。"""
+    fake_http = install_fake_http(
+        monkeypatch,
+        post_responses=[
+            FakeHttpResponse(
+                json_data={
+                    "data": [{"b64_json": "aGVsbG8=", "revised_prompt": "better prompt"}],
+                    "quality": "medium",
+                    "size": "1024x1024",
+                    "output_format": "png",
+                    "background": "opaque",
+                }
+            )
+        ],
+    )
+
+    async def _helper_generate():
+        client = ChatCompletionsModelClient(
+            api_key="key",
+            base_url="https://example.test/v1",
+            model="test-model",
+        )
+        return await client.generate_image("draw puppy", "gpt-image-2", "1024x1024", "high", "png")
+
+    result = asyncio.run(_helper_generate())
+
+    assert result["b64_json"] == "aGVsbG8="
+    assert result["quality"] == "medium"
+    assert fake_http.requests[0][1] == "https://example.test/v1/images/generations"
+    assert fake_http.requests[0][2]["json"]["quality"] == "high"
+
+
+def test_model_client_edits_image(monkeypatch):
+    """函数作用：验证 Image API 编辑图片使用 multipart/form-data。"""
+    fake_http = install_fake_http(
+        monkeypatch,
+        post_responses=[
+            FakeHttpResponse(
+                json_data={
+                    "data": [{"b64_json": "aGVsbG8=", "revised_prompt": "edit prompt"}],
+                    "quality": "medium",
+                    "size": "1024x1024",
+                    "output_format": "png",
+                    "background": "opaque",
+                }
+            )
+        ],
+    )
+
+    async def _helper_edit():
+        client = ChatCompletionsModelClient(
+            api_key="key",
+            base_url="https://example.test/v1",
+            model="test-model",
+        )
+        return await client.edit_image(
+            "edit puppy",
+            [
+                {
+                    "name": "puppy.png",
+                    "mimeType": "image/png",
+                    "dataUrl": "data:image/png;base64,aGVsbG8=",
+                }
+            ],
+            "gpt-image-2",
+            "1024x1024",
+            "high",
+            "png",
+        )
+
+    result = asyncio.run(_helper_edit())
+
+    assert result["b64_json"] == "aGVsbG8="
+    assert fake_http.requests[0][1] == "https://example.test/v1/images/edits"
+    assert fake_http.requests[0][2]["data"]["prompt"] == "edit puppy"
+    assert fake_http.requests[0][2]["files"][0][0] == "image[]"
+    assert fake_http.requests[0][2]["files"][0][1][0] == "puppy.png"
+    assert "Content-Type" not in fake_http.requests[0][2]["headers"]
+
+
 def test_model_client_requires_embedding_api_key():
     """函数作用：验证缺少 Embedding API Key 时抛出配置错误。"""
     async def _helper_create():

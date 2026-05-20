@@ -61,8 +61,11 @@
 | 事件 | 示例 |
 | --- | --- |
 | `delta` | `{ "type": "delta", "delta": "文本增量" }` |
+| `intent_started` | `{ "type": "intent_started" }` |
+| `intent_finished` | `{ "type": "intent_finished", "intent": "image_generate", "confidence": "high", "message": "用户要求画图" }` |
 | `tool_call_started` | `{ "type": "tool_call_started", "toolName": "web_search" }` |
 | `tool_call_finished` | `{ "type": "tool_call_finished", "toolName": "web_search" }` |
+| `image` | `{ "type": "image", "message": "已生成图片。", "image": { "name": "generated.png", "mimeType": "image/png", "size": 123, "dataUrl": "data:image/png;base64,...", "source": "generated" } }` |
 | `sources` | `{ "type": "sources", "sources": [{ "id": "src_1", "title": "AP News", "url": "https://example.com", "domain": "example.com" }], "citationGroups": [{ "id": "cite_1", "label": "AP News", "sourceIds": ["src_1"] }] }` |
 | `done` | `{ "type": "done" }` |
 | `error` | `{ "type": "error", "message": "错误信息" }` |

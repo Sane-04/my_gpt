@@ -1,4 +1,5 @@
 ﻿# 模块说明：后端测试模块，验证接口契约、仓储行为和核心服务边界。
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -212,6 +213,53 @@ class EmbeddingFailingModelClient(FakeModelClient):
         raise RuntimeError("embedding 失败")
 
 
+class FakeImageGenerateModelClient(FakeModelClient):
+    """类作用：模拟识别为文生图并返回图片的模型客户端。"""
+
+    async def create_chat_completion(self, _messages, response_format=None):
+        """函数作用：返回文生图意图。
+        输入参数：_messages - 意图识别消息；response_format - 响应格式。
+        输出参数：Chat Completions 响应。
+        """
+        return {"choices": [{"message": {"content": '{"intent":"image_generate","confidence":"high","reason":"用户要求画图","requiresPreviousImage":false,"usesUploadedImages":false}'}}]}
+
+    async def generate_image(self, prompt, model, size, quality, output_format):
+        """函数作用：返回固定图片结果。
+        输入参数：prompt、model、size、quality、output_format - 图片请求参数。
+        输出参数：图片结果。
+        """
+        return {
+            "b64_json": "aGVsbG8=",
+            "revised_prompt": prompt,
+            "quality": "medium",
+            "size": size,
+            "output_format": output_format,
+            "background": "opaque",
+        }
+
+
+class FakeImageEditModelClient(FakeModelClient):
+    """类作用：模拟识别为图像编辑并返回图片的模型客户端。"""
+
+    captured_images = None
+
+    async def create_chat_completion(self, _messages, response_format=None):
+        """函数作用：返回图像编辑意图。"""
+        return {"choices": [{"message": {"content": '{"intent":"image_edit","confidence":"high","reason":"用户要求编辑上一张图","requiresPreviousImage":true,"usesUploadedImages":false}'}}]}
+
+    async def edit_image(self, prompt, images, model, size, quality, output_format):
+        """函数作用：返回固定编辑图片结果。"""
+        FakeImageEditModelClient.captured_images = images
+        return {
+            "b64_json": "aGVsbG8=",
+            "revised_prompt": prompt,
+            "quality": "medium",
+            "size": size,
+            "output_format": output_format,
+            "background": "opaque",
+        }
+
+
 @pytest.fixture(autouse=True)
 def clear_dependency_overrides(monkeypatch):
     """函数作用：每个测试前后清理 FastAPI 依赖覆盖。
@@ -388,6 +436,8 @@ def test_chat_stream_returns_delta_done_and_saves_messages(monkeypatch):
 
     assert response.status_code == 200
     assert response.text.splitlines() == [
+        '{"type": "intent_started"}',
+        '{"type": "intent_finished", "intent": "chat", "confidence": "low", "message": "意图识别失败"}',
         '{"type": "delta", "delta": "你"}',
         '{"type": "delta", "delta": "好"}',
         '{"type": "done"}',
@@ -396,6 +446,122 @@ def test_chat_stream_returns_delta_done_and_saves_messages(monkeypatch):
     assert saved_messages[1][:3] == (MessageRole.ASSISTANT, "你好", None)
     assert updated_titles == ["你好"]
     assert "web_search" not in [tool["function"]["name"] for tool in FakeModelClient.captured_tools]
+
+
+def test_chat_stream_auto_generates_image(monkeypatch):
+    """函数作用：验证意图识别为文生图时返回 image 事件并保存助手图片 metadata。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    user = build_user()
+    conversation = build_conversation(user.id)
+    saved_messages = []
+    install_auth_overrides(user)
+
+    async def _helper_get_conversation_by_id(_session, _user_id, _conversation_id):
+        return conversation
+
+    async def _helper_count_messages(_session, _user_id, _conversation_id):
+        return 1
+
+    async def _helper_create_message(_session, user_id, conversation_id, role, content, metadata=None):
+        message = build_message(user_id, conversation_id, role, content)
+        saved_messages.append((role, content, metadata))
+        return message
+
+    async def _helper_list_recent_messages(_session, _user_id, _conversation_id, _limit):
+        return []
+
+    async def _helper_update_message_embedding_result(_session, _message_id, _user_id, _embedding, _status, _error):
+        return None
+
+    monkeypatch.setattr(chat_api, "get_conversation_by_id", _helper_get_conversation_by_id)
+    monkeypatch.setattr(chat_api, "count_messages", _helper_count_messages)
+    monkeypatch.setattr(chat_api, "create_message", _helper_create_message)
+    monkeypatch.setattr(chat_api, "list_recent_messages", _helper_list_recent_messages)
+    monkeypatch.setattr(chat_api, "update_message_embedding_result", _helper_update_message_embedding_result)
+    monkeypatch.setattr(chat_api, "ChatCompletionsModelClient", FakeImageGenerateModelClient)
+
+    response = TestClient(app).post(
+        "/api/chat/stream",
+        json={"conversationId": str(conversation.id), "content": "画一只小狗"},
+    )
+
+    events = [json.loads(line) for line in response.text.splitlines()]
+    assert response.status_code == 200
+    assert [event["type"] for event in events] == [
+        "intent_started",
+        "intent_finished",
+        "tool_call_started",
+        "image",
+        "tool_call_finished",
+        "done",
+    ]
+    assert events[1]["intent"] == "image_generate"
+    assert events[2]["toolName"] == "image_generation"
+    assert events[3]["image"]["dataUrl"] == "data:image/png;base64,aGVsbG8="
+    assert saved_messages[-1][0] == MessageRole.ASSISTANT
+    assert saved_messages[-1][2]["images"][0]["source"] == "generated"
+
+
+def test_chat_stream_auto_edits_recent_generated_image(monkeypatch):
+    """函数作用：验证意图识别为图像编辑时会使用最近生成图。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    user = build_user()
+    conversation = build_conversation(user.id)
+    previous_message = build_message(user.id, conversation.id, MessageRole.ASSISTANT, "已生成图片。")
+    previous_image = {
+        "name": "generated.png",
+        "mimeType": "image/png",
+        "size": 8,
+        "dataUrl": "data:image/png;base64,aGVsbG8=",
+        "source": "generated",
+    }
+    previous_message.metadata_ = {"images": [previous_image]}
+    install_auth_overrides(user)
+
+    async def _helper_get_conversation_by_id(_session, _user_id, _conversation_id):
+        return conversation
+
+    async def _helper_count_messages(_session, _user_id, _conversation_id):
+        return 2
+
+    async def _helper_create_message(_session, user_id, conversation_id, role, content, metadata=None):
+        return build_message(user_id, conversation_id, role, content)
+
+    async def _helper_list_recent_messages(_session, _user_id, _conversation_id, _limit):
+        return [previous_message]
+
+    async def _helper_update_message_embedding_result(_session, _message_id, _user_id, _embedding, _status, _error):
+        return None
+
+    monkeypatch.setattr(chat_api, "get_conversation_by_id", _helper_get_conversation_by_id)
+    monkeypatch.setattr(chat_api, "count_messages", _helper_count_messages)
+    monkeypatch.setattr(chat_api, "create_message", _helper_create_message)
+    monkeypatch.setattr(chat_api, "list_recent_messages", _helper_list_recent_messages)
+    monkeypatch.setattr(chat_api, "update_message_embedding_result", _helper_update_message_embedding_result)
+    monkeypatch.setattr(chat_api, "ChatCompletionsModelClient", FakeImageEditModelClient)
+
+    response = TestClient(app).post(
+        "/api/chat/stream",
+        json={"conversationId": str(conversation.id), "content": "把上一张改成戴蓝色蝴蝶结"},
+    )
+
+    events = [json.loads(line) for line in response.text.splitlines()]
+    assert response.status_code == 200
+    assert [event["type"] for event in events] == [
+        "intent_started",
+        "intent_finished",
+        "tool_call_started",
+        "image",
+        "tool_call_finished",
+        "done",
+    ]
+    assert events[1]["intent"] == "image_edit"
+    assert events[2]["toolName"] == "image_edit"
+    assert FakeImageEditModelClient.captured_images == [previous_image]
 
 
 def test_chat_stream_exposes_web_search_tool_when_enabled(monkeypatch):
@@ -559,6 +725,8 @@ def test_chat_stream_saves_web_search_sources_metadata(monkeypatch):
 
     assert response.status_code == 200
     assert response.text.splitlines() == [
+        '{"type": "intent_started"}',
+        '{"type": "intent_finished", "intent": "chat", "confidence": "low", "message": "意图识别失败"}',
         '{"type": "tool_call_started", "toolName": "web_search"}',
         '{"type": "tool_call_finished", "toolName": "web_search"}',
         '{"type": "delta", "delta": "1. 最新动态来自搜索结果。[[cite:src_1]]"}',
@@ -624,7 +792,11 @@ def test_chat_stream_returns_error_event_and_does_not_save_empty_assistant(monke
     )
 
     assert response.status_code == 200
-    assert response.text.splitlines() == ['{"type": "error", "message": "模型失败"}']
+    assert response.text.splitlines() == [
+        '{"type": "intent_started"}',
+        '{"type": "intent_finished", "intent": "chat", "confidence": "low", "message": "意图识别失败"}',
+        '{"type": "error", "message": "模型失败"}',
+    ]
     assert saved_messages == [(MessageRole.USER, "你好", None)]
 
 
@@ -682,6 +854,8 @@ def test_chat_stream_sanitizes_upstream_html_gateway_error(monkeypatch):
 
     assert response.status_code == 200
     assert response.text.splitlines() == [
+        '{"type": "intent_started"}',
+        '{"type": "intent_finished", "intent": "chat", "confidence": "low", "message": "意图识别失败"}',
         '{"type": "error", "message": "模型服务网关错误（502 Bad Gateway），请检查 OPENAI_BASE_URL 对应服务是否可用，或稍后重试"}'
     ]
 
@@ -973,6 +1147,8 @@ def test_chat_stream_applies_multi_round_chat_tools(monkeypatch):
 
     assert response.status_code == 200
     assert response.text.splitlines() == [
+        '{"type": "intent_started"}',
+        '{"type": "intent_finished", "intent": "chat", "confidence": "low", "message": "意图识别失败"}',
         '{"type": "tool_call_started", "toolName": "list_long_term_memory"}',
         '{"type": "tool_call_finished", "toolName": "list_long_term_memory"}',
         '{"type": "tool_call_started", "toolName": "save_long_term_memory"}',
@@ -1085,6 +1261,8 @@ def test_chat_stream_embedding_failure_does_not_block(monkeypatch):
 
     assert response.status_code == 200
     assert response.text.splitlines() == [
+        '{"type": "intent_started"}',
+        '{"type": "intent_finished", "intent": "chat", "confidence": "low", "message": "意图识别失败"}',
         '{"type": "delta", "delta": "你"}',
         '{"type": "delta", "delta": "好"}',
         '{"type": "done"}',

@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
     openai_base_url: str = Field(default="https://api.openai.com/v1", alias="OPENAI_BASE_URL")
     chat_model: str = Field(default="gpt-5.4", validation_alias=AliasChoices("CHAT_MODEL", "RESPONSES_MODEL"))
+    # 图片生成配置：使用 Image API 调用专用图片模型，聊天模型仅负责意图识别和普通对话。
+    image_model: str = Field(default="gpt-image-2", alias="IMAGE_MODEL")
+    image_size: str = Field(default="1024x1024", alias="IMAGE_SIZE")
+    image_quality: str = Field(default="high", alias="IMAGE_QUALITY")
+    image_output_format: str = Field(default="png", alias="IMAGE_OUTPUT_FORMAT")
+    image_intent_context_size: int = Field(default=5, alias="IMAGE_INTENT_CONTEXT_SIZE")
     # Embedding 配置：独立于聊天模型配置，避免不同供应商或网关混用鉴权信息。
     embedding_api_key: str = Field(default="", alias="EMBEDDING_API_KEY")
     embedding_base_url: str = Field(default="", alias="EMBEDDING_BASE_URL")

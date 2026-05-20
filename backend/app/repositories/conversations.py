@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.conversation import Conversation
 from app.models.message import Message
+from app.models.prompt_snapshot import PromptSnapshot
+from app.models.tool_call_event import ToolCallEvent
 
 
 async def create_conversation(session: AsyncSession, user_id: uuid.UUID, title: str | None) -> Conversation:
@@ -53,7 +55,7 @@ async def delete_conversation_by_id(
     user_id: uuid.UUID,
     conversation_id: uuid.UUID,
 ) -> bool:
-    """函数作用：硬删除当前用户自己的会话及其消息。
+    """函数作用：硬删除当前用户自己的会话及其关联记录。
     输入参数：session - 异步数据库会话；user_id - 当前用户 UUID；conversation_id - 会话 UUID。
     输出参数：删除成功返回 True；会话不存在或不属于当前用户返回 False。
     """
@@ -61,6 +63,12 @@ async def delete_conversation_by_id(
     if conversation is None:
         return False
 
+    await session.execute(
+        delete(ToolCallEvent).where(ToolCallEvent.conversation_id == conversation_id, ToolCallEvent.user_id == user_id)
+    )
+    await session.execute(
+        delete(PromptSnapshot).where(PromptSnapshot.conversation_id == conversation_id, PromptSnapshot.user_id == user_id)
+    )
     await session.execute(delete(Message).where(Message.conversation_id == conversation_id, Message.user_id == user_id))
     await session.delete(conversation)
     await session.commit()

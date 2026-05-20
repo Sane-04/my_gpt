@@ -1,17 +1,21 @@
 ﻿<!-- 模块说明：前端页面模块，承接路由页面的状态组织和用户操作。 -->
 <script setup lang="ts">
+import { Menu } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import IconButton from '@/components/base/IconButton.vue'
 import ErrorState from '@/components/base/ErrorState.vue'
 import MessageComposer from '@/components/chat/MessageComposer.vue'
 import MessageList from '@/components/chat/MessageList.vue'
 import { useConversationsStore } from '@/stores/conversations'
 import { useMessagesStore } from '@/stores/messages'
+import { useUiStore } from '@/stores/ui'
 import type { ChatImageInput } from '@/types/chat'
 
 const route = useRoute()
 const router = useRouter()
+const uiStore = useUiStore()
 const conversationsStore = useConversationsStore()
 const messagesStore = useMessagesStore()
 const { errorMessage, isStreaming } = storeToRefs(messagesStore)
@@ -113,7 +117,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="flex h-[calc(100vh-3.5rem)] min-h-0 flex-col overflow-hidden">
+  <main class="relative flex h-screen min-h-0 flex-col overflow-hidden">
+    <IconButton
+      class="absolute left-3 top-3 z-20 bg-white/90 shadow-sm lg:hidden"
+      label="打开侧栏"
+      @click="uiStore.openSidebar()"
+    >
+      <Menu class="size-5" />
+    </IconButton>
     <section class="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-3 pt-3 sm:px-5">
       <!-- 错误状态保留在消息区上方，不打断用户继续输入。 -->
       <ErrorState v-if="errorMessage" class="mb-4 shrink-0" title="生成失败" :message="errorMessage" />

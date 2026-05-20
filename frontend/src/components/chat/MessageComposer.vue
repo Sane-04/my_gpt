@@ -324,7 +324,7 @@ watch(
 </script>
 
 <template>
-  <form class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 shadow-sm" @submit.prevent="handleSubmit">
+  <form class="rounded-2xl border border-zinc-200 bg-white px-3 py-1.5 shadow-sm" @submit.prevent="handleSubmit">
     <div v-if="images.length" class="mb-3 flex flex-wrap gap-2">
       <div
         v-for="(image, index) in images"
@@ -359,8 +359,8 @@ watch(
       <textarea
         v-model="content"
         rows="1"
-        placeholder="给 My GPT 发送消息"
-        class="max-h-40 min-h-10 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-1.5 text-sm leading-6 outline-none placeholder:text-zinc-400"
+        placeholder="勇敢牛牛，不怕困难！"
+        class="max-h-40 min-h-10 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-2.5 text-sm leading-5 outline-none placeholder:text-zinc-400"
         :disabled="isStreaming"
         @keydown="handleKeydown"
         @paste="handlePaste"

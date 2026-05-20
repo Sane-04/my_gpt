@@ -44,6 +44,8 @@ describe('useMessagesStore', () => {
     }
     const streamSpy = vi.spyOn(chatApi, 'stream').mockResolvedValue(
       createStream([
+        { type: 'intent_started' },
+        { type: 'intent_finished', intent: 'chat', confidence: 'high', message: '普通文本请求' },
         { type: 'tool_call_started', toolName: 'web_search' },
         { type: 'tool_call_finished', toolName: 'web_search' },
         { type: 'delta', delta: '我已经收到你的消息。[[cite:src_1]]' },
@@ -94,6 +96,46 @@ describe('useMessagesStore', () => {
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     )
     expect(processingSpy).toHaveBeenCalledWith('conversation-1', messages[1]?.id, '正在搜索网页...')
+    expect(processingSpy).toHaveBeenCalledWith('conversation-1', messages[1]?.id, '正在识别用户意图...')
+    expect(processingSpy).toHaveBeenCalledWith('conversation-1', messages[1]?.id, '识别为普通聊天，正在组织回答...')
+  })
+
+  it('可以消费图片生成事件并追加到助手消息', async () => {
+    const generatedImage = {
+      name: 'generated.png',
+      mimeType: 'image/png',
+      size: 8,
+      dataUrl: 'data:image/png;base64,aGVsbG8=',
+      source: 'generated' as const,
+      generation: {
+        intent: 'image_generate',
+        quality: 'medium',
+      },
+    }
+    vi.spyOn(chatApi, 'stream').mockResolvedValue(
+      createStream([
+        { type: 'intent_started' },
+        { type: 'intent_finished', intent: 'image_generate', confidence: 'high', message: '用户要求生成图片' },
+        { type: 'tool_call_started', toolName: 'image_generation' },
+        { type: 'image', image: generatedImage, message: '已生成图片。' },
+        { type: 'tool_call_finished', toolName: 'image_generation' },
+        { type: 'done' },
+      ]),
+    )
+    const messagesStore = useMessagesStore()
+    const processingSpy = vi.spyOn(messagesStore, 'setAssistantProcessingText')
+
+    await messagesStore.sendMessage({
+      conversationId: 'conversation-1',
+      content: '画一只小狗',
+    })
+
+    const messages = messagesStore.getMessagesByConversationId('conversation-1')
+    expect(messages[1]?.content).toBe('已生成图片。')
+    expect(messages[1]?.images).toEqual([generatedImage])
+    expect(messages[1]?.status).toBe('complete')
+    expect(processingSpy).toHaveBeenCalledWith('conversation-1', messages[1]?.id, '识别为图片生成：用户要求生成图片')
+    expect(processingSpy).toHaveBeenCalledWith('conversation-1', messages[1]?.id, '正在生成图片...')
   })
 
   it('默认只加载最近 20 条，并在向上翻页时前置更早消息', async () => {
@@ -150,6 +192,8 @@ describe('useMessagesStore', () => {
   it('天气工具调用时展示查询天气状态', async () => {
     vi.spyOn(chatApi, 'stream').mockResolvedValue(
       createStream([
+        { type: 'intent_started' },
+        { type: 'intent_finished', intent: 'chat', confidence: 'high', message: '普通文本请求' },
         { type: 'tool_call_started', toolName: 'get_weather' },
         { type: 'tool_call_finished', toolName: 'get_weather' },
         { type: 'delta', delta: '菏泽今天晴朗。' },

@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import {
-  Bot,
   Brain,
   LogOut,
   Menu,
@@ -11,7 +10,7 @@ import {
   Trash2,
   UserCircle,
 } from 'lucide-vue-next'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import IconButton from '@/components/base/IconButton.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -28,6 +27,8 @@ const messagesStore = useMessagesStore()
 const { isSidebarOpen } = storeToRefs(uiStore)
 const { user } = storeToRefs(authStore)
 const { activeConversation, items, activeConversationId } = storeToRefs(conversationsStore)
+let mediaQuery: MediaQueryList | null = null
+let syncSidebarByViewport: (() => void) | null = null
 
 // 根据当前路由显示顶部状态区标题，保持页面切换时上下文明确。
 const currentSection = computed(() => {
@@ -37,18 +38,38 @@ const currentSection = computed(() => {
 
   return activeConversation.value?.title ?? '新的对话'
 })
+const shouldShowHeader = computed(() => route.name !== 'chat')
 
 // 移动端切换路由后自动收起侧栏，避免遮罩残留影响主内容操作。
 watch(
   () => route.fullPath,
   () => {
-    uiStore.closeSidebar()
+    if (!mediaQuery?.matches) {
+      uiStore.closeSidebar()
+    }
   },
 )
 
 // 应用外壳挂载时加载后端会话列表，让刷新后侧栏立即恢复历史。
 onMounted(() => {
+  mediaQuery = window.matchMedia('(min-width: 1024px)')
+  syncSidebarByViewport = () => {
+    if (mediaQuery?.matches) {
+      uiStore.openSidebar()
+    } else {
+      uiStore.closeSidebar()
+    }
+  }
+
+  syncSidebarByViewport()
+  mediaQuery.addEventListener('change', syncSidebarByViewport)
   void conversationsStore.loadConversations()
+})
+
+onBeforeUnmount(() => {
+  if (syncSidebarByViewport) {
+    mediaQuery?.removeEventListener('change', syncSidebarByViewport)
+  }
 })
 
 /** 函数作用：进入新对话草稿态；输入参数：无；输出参数：Promise<void>。 */
@@ -95,17 +116,17 @@ async function handleLogout() {
 
     <!-- 应用主侧栏：桌面端固定展示，移动端由 uiStore 控制折叠。 -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-zinc-200 bg-white transition-transform duration-200 lg:translate-x-0"
+      class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-zinc-200 bg-white transition-transform duration-200"
       :class="{ 'translate-x-0': isSidebarOpen }"
     >
       <div class="flex h-14 items-center justify-between border-b border-zinc-200 px-4">
         <RouterLink to="/chat" class="flex items-center gap-2 text-sm font-semibold">
-          <span class="flex size-8 items-center justify-center rounded-md bg-zinc-950 text-white">
-            <Bot class="size-4" />
+          <span class="size-8 overflow-hidden rounded-md bg-zinc-100">
+            <img src="/cow.jpg" alt="应用头像" class="size-full object-cover" />
           </span>
           My GPT FROM SANE
         </RouterLink>
-        <IconButton class="lg:hidden" label="关闭侧栏" @click="uiStore.closeSidebar()">
+        <IconButton label="关闭侧栏" @click="uiStore.closeSidebar()">
           <PanelLeftClose class="size-5" />
         </IconButton>
       </div>
@@ -113,7 +134,7 @@ async function handleLogout() {
       <div class="border-b border-zinc-200 p-3">
         <button
           type="button"
-          class="flex h-10 items-center gap-2 rounded-md bg-zinc-950 px-3 text-sm font-medium text-white transition hover:bg-zinc-800"
+          class="flex h-10 w-full items-center gap-2 rounded-md bg-transparent px-3 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100"
           @click="handleCreateConversation"
         >
           <MessageSquarePlus class="size-4" />
@@ -142,7 +163,7 @@ async function handleLogout() {
             {{ conversation.title }}
           </RouterLink>
           <IconButton
-            class="mr-1 size-8 opacity-0 transition group-hover:opacity-100 focus:opacity-100"
+            class="mr-1 size-8 opacity-100 transition lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
             label="删除会话"
             @click.prevent.stop="handleDeleteConversation(conversation.id)"
           >
@@ -184,9 +205,22 @@ async function handleLogout() {
       </div>
     </aside>
 
-    <div class="flex h-screen min-h-0 flex-col overflow-hidden lg:pl-72">
+    <div
+      class="flex h-screen min-h-0 flex-col overflow-hidden transition-[padding] duration-200"
+      :class="{ 'lg:pl-72': isSidebarOpen }"
+    >
+      <IconButton
+        v-if="!isSidebarOpen"
+        class="fixed left-3 top-3 z-30 hidden bg-white/90 shadow-sm lg:inline-flex"
+        label="打开侧栏"
+        @click="uiStore.openSidebar()"
+      >
+        <Menu class="size-5" />
+      </IconButton>
+
       <!-- 顶部状态栏承载移动菜单按钮和当前页面轻量状态。 -->
       <header
+        v-if="shouldShowHeader"
         class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-zinc-200 bg-white/90 px-3 backdrop-blur sm:px-5"
       >
         <div class="flex min-w-0 items-center gap-2">

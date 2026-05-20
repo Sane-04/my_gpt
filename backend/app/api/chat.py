@@ -3,6 +3,7 @@ import json
 import re
 import uuid
 from collections.abc import AsyncIterator
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -20,6 +21,8 @@ from app.repositories.messages import count_messages, create_message, list_recen
 from app.repositories.prompt_snapshots import create_prompt_snapshot
 from app.repositories.tool_call_events import create_tool_call_event, mark_tool_call_failed, mark_tool_call_succeeded
 from app.prompts.chat import build_chat_system_prompt, build_long_term_memory_prompt
+from app.prompts.image import build_image_edit_prompt, build_image_generation_prompt
+from app.prompts.intent import build_image_intent_messages
 from app.schemas.chat import ChatImageInput, ChatStreamRequest
 from app.services.model_client import (
     ChatCompletionsModelClient,
@@ -32,6 +35,7 @@ from app.tools.chat_tools import execute_chat_tool, get_chat_tools
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 MAX_TOOL_CALL_ROUNDS = 5
+IMAGE_INTENTS = {"chat", "image_generate", "image_edit"}
 
 
 def _encode_stream_event(event: dict) -> bytes:
@@ -120,6 +124,164 @@ def _build_user_model_message(content: str, images: list[dict]) -> dict:
                 for image in images
             ],
         ],
+    }
+
+
+def _extract_chat_completion_text(response: dict) -> str:
+    """函数作用：从非流式 Chat Completions 响应中提取助手文本。
+    输入参数：response - 模型响应 JSON。
+    输出参数：助手消息文本。
+    """
+    choices = response.get("choices") or []
+    if not choices:
+        return ""
+
+    message = choices[0].get("message") or {}
+    return str(message.get("content") or "")
+
+
+def _parse_image_intent_response(response_text: str) -> dict:
+    """函数作用：解析图片意图识别 JSON。
+    输入参数：response_text - 模型返回的 JSON 文本。
+    输出参数：归一化后的意图识别字典。
+    """
+    try:
+        payload = json.loads(response_text)
+    except json.JSONDecodeError:
+        return {"intent": "chat", "confidence": "low", "reason": "意图识别 JSON 解析失败"}
+
+    intent = str(payload.get("intent") or "chat").strip()
+    if intent not in IMAGE_INTENTS:
+        intent = "chat"
+
+    confidence = str(payload.get("confidence") or "low").strip()
+    if confidence not in {"low", "medium", "high"}:
+        confidence = "low"
+
+    if confidence == "low":
+        intent = "chat"
+
+    return {
+        "intent": intent,
+        "confidence": confidence,
+        "reason": str(payload.get("reason") or "").strip(),
+        "requiresPreviousImage": bool(payload.get("requiresPreviousImage")),
+        "usesUploadedImages": bool(payload.get("usesUploadedImages")),
+    }
+
+
+def _get_message_images(message) -> list[dict]:
+    """函数作用：读取消息 metadata 中的图片列表。
+    输入参数：message - 消息模型。
+    输出参数：图片字典列表。
+    """
+    metadata = message.metadata_ or {}
+    if not isinstance(metadata, dict):
+        return []
+
+    images = metadata.get("images")
+    return images if isinstance(images, list) else []
+
+
+def _has_generated_image(message) -> bool:
+    """函数作用：判断消息是否包含助手生成图片。
+    输入参数：message - 消息模型。
+    输出参数：是否包含生成图片。
+    """
+    for image in _get_message_images(message):
+        if isinstance(image, dict) and image.get("source") == "generated":
+            return True
+
+    return False
+
+
+def _build_intent_recent_messages(messages: list) -> list[dict]:
+    """函数作用：构造意图识别使用的最近消息摘要。
+    输入参数：messages - 最近消息模型列表。
+    输出参数：消息摘要列表，不包含图片 base64。
+    """
+    summaries = []
+    for message in messages:
+        images = _get_message_images(message)
+        generated_images = [
+            image
+            for image in images
+            if isinstance(image, dict) and image.get("source") == "generated"
+        ]
+        image_summary = None
+        if generated_images:
+            generation = generated_images[-1].get("generation") if isinstance(generated_images[-1], dict) else None
+            image_summary = {
+                "size": generated_images[-1].get("generation", {}).get("size") if isinstance(generation, dict) else None,
+                "prompt": generated_images[-1].get("generation", {}).get("prompt") if isinstance(generation, dict) else None,
+                "revisedPrompt": generated_images[-1].get("generation", {}).get("revisedPrompt") if isinstance(generation, dict) else None,
+            }
+
+        summaries.append(
+            {
+                "role": message.role.value,
+                "content": message.content,
+                "hasImages": bool(images),
+                "hasGeneratedImage": bool(generated_images),
+                "imageSummary": image_summary,
+            }
+        )
+
+    return summaries
+
+
+def _find_recent_generated_images(messages: list) -> list[dict]:
+    """函数作用：从最近消息中查找最后一组生成图片。
+    输入参数：messages - 最近消息模型列表。
+    输出参数：可用于 Image API edits 的图片列表。
+    """
+    for message in reversed(messages):
+        generated_images = [
+            image
+            for image in _get_message_images(message)
+            if isinstance(image, dict) and image.get("source") == "generated" and image.get("dataUrl")
+        ]
+        if generated_images:
+            return generated_images
+
+    return []
+
+
+def _build_generated_image_metadata(
+    result: dict,
+    prompt: str,
+    intent: str,
+    requested_quality: str,
+    requested_size: str,
+    requested_output_format: str,
+) -> dict:
+    """函数作用：把 Image API 返回结果转换为消息图片 metadata。
+    输入参数：result - Image API 结果；prompt - 实际发送的图片提示词；intent - 图片意图；requested_quality - 请求质量；requested_size - 请求尺寸；requested_output_format - 请求格式。
+    输出参数：前端 MessageImage 字典。
+    """
+    output_format = str(result.get("output_format") or requested_output_format or "png").lower()
+    mime_type = f"image/{'jpeg' if output_format in {'jpg', 'jpeg'} else output_format}"
+    b64_json = str(result.get("b64_json") or "")
+    return {
+        "name": f"generated-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.{output_format}",
+        "mimeType": mime_type,
+        "size": len(b64_json),
+        "dataUrl": f"data:{mime_type};base64,{b64_json}",
+        "source": "generated",
+        "generation": {
+            "intent": intent,
+            "model": get_settings().image_model,
+            "requestedQuality": requested_quality,
+            "quality": result.get("quality"),
+            "requestedSize": requested_size,
+            "size": result.get("size"),
+            "requestedOutputFormat": requested_output_format,
+            "outputFormat": result.get("output_format") or requested_output_format,
+            "background": result.get("background"),
+            "prompt": prompt,
+            "revisedPrompt": result.get("revised_prompt"),
+            "createdFrom": "image_api",
+        },
     }
 
 
@@ -238,6 +400,37 @@ async def _stream_chat_events(
 
         yield {"type": "final_messages", "messages": messages}
 
+    async def _helper_detect_image_intent(
+        model_client: ChatCompletionsModelClient,
+        recent_context_messages: list,
+        current_content: str,
+        current_images: list[dict],
+    ) -> dict:
+        """函数作用：识别当前用户请求是否需要图片生成或编辑。
+        输入参数：model_client - 模型客户端；recent_context_messages - 最近历史消息；current_content - 当前用户文本；current_images - 当前上传图片。
+        输出参数：意图识别结果字典；失败时返回 chat。
+        """
+        settings = get_settings()
+        recent_messages = recent_context_messages[-max(int(getattr(settings, "image_intent_context_size", 5)), 0) :]
+        current_message = {
+            "content": current_content,
+            "uploadedImageCount": len(current_images),
+            "hasUploadedImages": bool(current_images),
+            "recentHasGeneratedImage": any(_has_generated_image(message) for message in recent_messages),
+        }
+        try:
+            intent_messages = build_image_intent_messages(_build_intent_recent_messages(recent_messages), current_message)
+            try:
+                response = await model_client.create_chat_completion(
+                    intent_messages,
+                    response_format={"type": "json_object"},
+                )
+            except ModelStreamError:
+                response = await model_client.create_chat_completion(intent_messages)
+            return _parse_image_intent_response(_extract_chat_completion_text(response))
+        except Exception:
+            return {"intent": "chat", "confidence": "low", "reason": "意图识别失败"}
+
     settings = get_settings()
     assistant_content = ""
     web_search_sources = []
@@ -262,10 +455,26 @@ async def _stream_chat_events(
             session,
             user_id,
             conversation_id,
-            settings.context_window_size + 1,
+            max(settings.context_window_size, int(getattr(settings, "image_intent_context_size", 5))) + 1,
         )
         context_messages = [message for message in recent_messages if message.id != user_message.id]
         context_messages = context_messages[-settings.context_window_size :]
+        intent_context_messages = [message for message in recent_messages if message.id != user_message.id]
+        yield _encode_stream_event({"type": "intent_started"})
+        image_intent = await _helper_detect_image_intent(
+            model_client,
+            intent_context_messages,
+            stored_content,
+            image_payloads,
+        )
+        yield _encode_stream_event(
+            {
+                "type": "intent_finished",
+                "intent": image_intent["intent"],
+                "confidence": image_intent.get("confidence"),
+                "message": image_intent.get("reason") or "已完成用户意图识别",
+            }
+        )
         long_term_memories = await list_long_term_memories(session, user_id)
         memory_text = format_long_term_memories_for_prompt(
             long_term_memories,
@@ -283,6 +492,79 @@ async def _stream_chat_events(
             current_user_model_message,
         ]
         exclude_message_ids = {message.id for message in context_messages}
+
+        if image_intent["intent"] in {"image_generate", "image_edit"}:
+            image_action = "image_generation" if image_intent["intent"] == "image_generate" else "image_edit"
+            yield _encode_stream_event({"type": "tool_call_started", "toolName": image_action})
+            if image_intent["intent"] == "image_generate":
+                image_prompt = build_image_generation_prompt(stored_content)
+                image_result = await model_client.generate_image(
+                    image_prompt,
+                    settings.image_model,
+                    settings.image_size,
+                    settings.image_quality,
+                    settings.image_output_format,
+                )
+            else:
+                edit_source_images = image_payloads or _find_recent_generated_images(intent_context_messages)
+                if not edit_source_images:
+                    assistant_content = "请先上传一张图片，或先生成一张图片后再继续编辑。"
+                    yield _encode_stream_event({"type": "delta", "delta": assistant_content})
+                    if existing_message_count == 0:
+                        await update_conversation_title(session, user_id, conversation_id, _build_title(stored_content))
+
+                    assistant_message = await create_message(
+                        session,
+                        user_id,
+                        conversation_id,
+                        MessageRole.ASSISTANT,
+                        assistant_content,
+                        metadata={"imageIntent": image_intent},
+                    )
+                    await _helper_embed_message(model_client, assistant_message)
+                    yield _encode_stream_event({"type": "tool_call_finished", "toolName": image_action})
+                    yield _encode_stream_event({"type": "done"})
+                    return
+
+                image_prompt = build_image_edit_prompt(stored_content)
+                image_result = await model_client.edit_image(
+                    image_prompt,
+                    edit_source_images,
+                    settings.image_model,
+                    settings.image_size,
+                    settings.image_quality,
+                    settings.image_output_format,
+                )
+
+            generated_image = _build_generated_image_metadata(
+                image_result,
+                image_prompt,
+                image_intent["intent"],
+                settings.image_quality,
+                settings.image_size,
+                settings.image_output_format,
+            )
+            assistant_content = "已生成图片。"
+            assistant_metadata = {
+                "images": [generated_image],
+                "imageIntent": image_intent,
+            }
+            yield _encode_stream_event({"type": "image", "image": generated_image, "message": assistant_content})
+            yield _encode_stream_event({"type": "tool_call_finished", "toolName": image_action})
+            if existing_message_count == 0:
+                await update_conversation_title(session, user_id, conversation_id, _build_title(stored_content))
+
+            assistant_message = await create_message(
+                session,
+                user_id,
+                conversation_id,
+                MessageRole.ASSISTANT,
+                assistant_content,
+                metadata=assistant_metadata,
+            )
+            await _helper_embed_message(model_client, assistant_message)
+            yield _encode_stream_event({"type": "done"})
+            return
 
         final_messages = messages
         async for event in _helper_run_model_with_chat_tools(model_client, messages, exclude_message_ids, tools):

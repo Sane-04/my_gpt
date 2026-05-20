@@ -1,6 +1,6 @@
 ﻿<!-- 模块说明：前端 Vue 组件模块，封装页面可复用的 UI 与交互片段。 -->
 <script setup lang="ts">
-import { Bot, CircleAlert, User, Volume2, VolumeX } from 'lucide-vue-next'
+import { CircleAlert, Download, User, Volume2, VolumeX } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import IconButton from '@/components/base/IconButton.vue'
 import ToolNotice from '@/components/chat/ToolNotice.vue'
@@ -196,6 +196,16 @@ function toggleSpeaking() {
   }
 }
 
+/** 函数作用：下载消息中的图片；输入参数：dataUrl 图片 data URL、name 文件名；输出参数：无返回值。 */
+function downloadImage(dataUrl: string, name: string) {
+  const link = document.createElement('a')
+  link.href = dataUrl
+  link.download = name || 'generated-image.png'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+}
+
 onBeforeUnmount(() => {
   if (isSpeaking.value) {
     stopSpeaking()
@@ -219,9 +229,9 @@ onBeforeUnmount(() => {
   >
     <div
       v-if="message.role !== 'user'"
-      class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-950 text-white"
+      class="mt-1 size-8 shrink-0 overflow-hidden rounded-md bg-zinc-100"
     >
-      <Bot class="size-4" />
+      <img src="/cow.jpg" alt="助手头像" class="size-full object-cover" />
     </div>
 
     <div
@@ -235,7 +245,7 @@ onBeforeUnmount(() => {
       <div v-if="message.role === 'assistant'" class="markdown-body" @click="handleMarkdownClick" v-html="renderedContent" />
       <div v-else class="whitespace-pre-wrap break-words">{{ message.content }}</div>
 
-      <div v-if="shouldShowSpeakButton" class="mt-3 flex justify-end">
+      <div v-if="shouldShowSpeakButton" class="mt-3 hidden justify-end sm:flex">
         <IconButton
           :label="isSpeechSynthesisSupported ? (isSpeaking ? '停止朗读' : '朗读回答') : '当前浏览器不支持朗读'"
           :disabled="!isSpeechSynthesisSupported"
@@ -254,17 +264,25 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-if="message.images?.length" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <a
+        <div
           v-for="(image, index) in message.images"
           :key="`${image.name}-${index}`"
-          :href="image.dataUrl"
-          target="_blank"
-          rel="noreferrer"
-          class="block overflow-hidden rounded-md border"
+          class="group relative overflow-hidden rounded-md border"
           :class="message.role === 'user' ? 'border-white/20' : 'border-zinc-200'"
         >
-          <img :src="image.dataUrl" :alt="image.name" class="aspect-square w-full object-cover" />
-        </a>
+          <a :href="image.dataUrl" target="_blank" rel="noreferrer" class="block">
+            <img :src="image.dataUrl" :alt="image.name" class="aspect-square w-full object-cover" />
+          </a>
+          <button
+            v-if="image.source === 'generated'"
+            type="button"
+            class="absolute right-1.5 top-1.5 inline-flex size-8 items-center justify-center rounded-md bg-white/90 text-zinc-700 opacity-100 shadow-sm transition hover:bg-white hover:text-zinc-950 sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100"
+            :aria-label="`下载 ${image.name}`"
+            @click="downloadImage(image.dataUrl, image.name)"
+          >
+            <Download class="size-4" />
+          </button>
+        </div>
       </div>
 
       <div

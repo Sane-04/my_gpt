@@ -1,8 +1,17 @@
 // 模块说明：前端类型模块，定义领域对象、请求响应和流式事件契约。
-import type { CitationGroup, CitationSource } from '@/types/domain'
+import type { CitationGroup, CitationSource, MessageImage } from '@/types/domain'
 
 // 流式事件类型：delta 表示回答增量文本，tool_call_* 表示后端正在执行工具。
-export type ChatStreamEventType = 'delta' | 'tool_call_started' | 'tool_call_finished' | 'sources' | 'done' | 'error'
+export type ChatStreamEventType =
+  | 'intent_started'
+  | 'intent_finished'
+  | 'delta'
+  | 'tool_call_started'
+  | 'tool_call_finished'
+  | 'sources'
+  | 'image'
+  | 'done'
+  | 'error'
 
 // fetch stream 中每一行 JSON 对应的事件结构。
 export interface ChatStreamEvent {
@@ -10,8 +19,11 @@ export interface ChatStreamEvent {
   delta?: string
   message?: string
   toolName?: string
+  intent?: 'chat' | 'image_generate' | 'image_edit'
+  confidence?: 'low' | 'medium' | 'high'
   sources?: CitationSource[]
   citationGroups?: CitationGroup[]
+  image?: MessageImage
 }
 
 // 聊天图片输入：第一版使用 Base64 data URL 随请求发送。

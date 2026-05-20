@@ -58,6 +58,18 @@ class Conversation(Base):
 
     # 关系：会话向下关联消息、工具调用和调试快照。
     user: Mapped["User"] = relationship(back_populates="conversations")
-    messages: Mapped[list["Message"]] = relationship(back_populates="conversation")
-    tool_call_events: Mapped[list["ToolCallEvent"]] = relationship(back_populates="conversation")
-    prompt_snapshots: Mapped[list["PromptSnapshot"]] = relationship(back_populates="conversation")
+    messages: Mapped[list["Message"]] = relationship(
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    tool_call_events: Mapped[list["ToolCallEvent"]] = relationship(
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    prompt_snapshots: Mapped[list["PromptSnapshot"]] = relationship(
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

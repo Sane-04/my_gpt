@@ -31,6 +31,21 @@ export interface MessageImage {
   mimeType: string
   size: number
   dataUrl: string
+  source?: 'uploaded' | 'generated'
+  generation?: {
+    intent?: string
+    model?: string
+    requestedQuality?: string
+    quality?: string
+    requestedSize?: string
+    size?: string
+    requestedOutputFormat?: string
+    outputFormat?: string
+    background?: string
+    prompt?: string
+    revisedPrompt?: string
+    createdFrom?: string
+  }
 }
 
 // 当前登录用户的前端领域模型，第一阶段只保留展示和隔离所需字段。

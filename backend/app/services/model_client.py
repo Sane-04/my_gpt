@@ -1,4 +1,6 @@
 # 模块说明：后端服务模块，封装 OpenAI Chat Completions 兼容模型调用。
+import base64
+import binascii
 from collections.abc import AsyncIterator
 import json
 
@@ -122,6 +124,15 @@ class ChatCompletionsModelClient:
             "Content-Type": "application/json",
         }
 
+    def _auth_headers(self) -> dict[str, str]:
+        """函数作用：构造只包含鉴权信息的 HTTP 请求头。
+        输入参数：无。
+        输出参数：包含 Authorization 的请求头。
+        """
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+        }
+
     def _embedding_api_url(self, path: str) -> str:
         """函数作用：拼接 Embedding HTTP API 地址。
         输入参数：path - 以 / 开头的 API 路径。
@@ -171,6 +182,139 @@ class ChatCompletionsModelClient:
             raise ModelStreamError(response.text or f"模型 HTTP 调用失败：{response.status_code}")
 
         return response.json()
+
+    async def create_chat_completion(
+        self,
+        messages: list[dict],
+        response_format: dict | None = None,
+    ) -> dict:
+        """函数作用：非流式调用 Chat Completions，适合意图识别等短请求。
+        输入参数：messages - 模型消息列表；response_format - 可选响应格式约束。
+        输出参数：响应 JSON 字典。
+        """
+        self._validate_config()
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "stream": False,
+        }
+        if response_format:
+            payload["response_format"] = response_format
+
+        try:
+            return await self._post_json("/chat/completions", payload)
+        except ModelConfigError:
+            raise
+        except ModelStreamError:
+            raise
+        except Exception as exc:
+            raise ModelStreamError(str(exc)) from exc
+
+    async def generate_image(
+        self,
+        prompt: str,
+        model: str,
+        size: str,
+        quality: str,
+        output_format: str,
+    ) -> dict:
+        """函数作用：调用 Image API 根据文本生成图片。
+        输入参数：prompt - 图片提示词；model - 图片模型名；size - 图片尺寸；quality - 请求质量；output_format - 输出格式。
+        输出参数：包含图片 base64 和返回元信息的字典。
+        """
+        self._validate_config()
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "size": size,
+            "quality": quality,
+            "output_format": output_format,
+            "n": 1,
+        }
+        response = await self._post_json("/images/generations", payload)
+        data = response.get("data") or []
+        if not data or not isinstance(data[0], dict) or not data[0].get("b64_json"):
+            raise ModelStreamError("图片生成响应缺少 data[0].b64_json")
+
+        return {
+            "b64_json": data[0]["b64_json"],
+            "revised_prompt": data[0].get("revised_prompt"),
+            "quality": response.get("quality"),
+            "size": response.get("size"),
+            "output_format": response.get("output_format") or output_format,
+            "background": response.get("background"),
+            "usage": response.get("usage"),
+        }
+
+    async def edit_image(
+        self,
+        prompt: str,
+        images: list[dict],
+        model: str,
+        size: str,
+        quality: str,
+        output_format: str,
+    ) -> dict:
+        """函数作用：调用 Image API 根据输入图片执行编辑或参考图生成。
+        输入参数：prompt - 图片编辑提示词；images - data URL 图片列表；model - 图片模型名；size - 图片尺寸；quality - 请求质量；output_format - 输出格式。
+        输出参数：包含图片 base64 和返回元信息的字典。
+        """
+        self._validate_config()
+        if not images:
+            raise ModelStreamError("图片编辑需要至少一张输入图片")
+
+        files = []
+        for index, image in enumerate(images, start=1):
+            data_url = str(image.get("dataUrl") or "")
+            mime_type = str(image.get("mimeType") or "image/png")
+            prefix = f"data:{mime_type};base64,"
+            if not data_url.startswith(prefix):
+                raise ModelStreamError("图片 dataUrl 格式不正确")
+
+            try:
+                image_bytes = base64.b64decode(data_url.removeprefix(prefix), validate=True)
+            except (binascii.Error, ValueError) as exc:
+                raise ModelStreamError("图片 base64 数据无法解析") from exc
+
+            extension = mime_type.split("/")[-1].replace("jpeg", "jpg") or "png"
+            filename = str(image.get("name") or f"image-{index}.{extension}")
+            files.append(("image[]", (filename, image_bytes, mime_type)))
+
+        settings = get_settings()
+        timeout_seconds = max(float(getattr(settings, "model_http_timeout_seconds", 60.0)), 1.0)
+        data = {
+            "model": model,
+            "prompt": prompt,
+            "size": size,
+            "quality": quality,
+            "output_format": output_format,
+            "n": "1",
+        }
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_seconds, connect=min(timeout_seconds, 10.0))) as client:
+            response = await client.post(
+                self._api_url("/images/edits"),
+                headers=self._auth_headers(),
+                data=data,
+                files=files,
+            )
+
+        if response.status_code >= 400:
+            raise ModelStreamError(response.text or f"模型 HTTP 调用失败：{response.status_code}")
+
+        response_payload = response.json()
+        response_data = response_payload.get("data") or []
+        if not response_data or not isinstance(response_data[0], dict) or not response_data[0].get("b64_json"):
+            raise ModelStreamError("图片编辑响应缺少 data[0].b64_json")
+
+        return {
+            "b64_json": response_data[0]["b64_json"],
+            "revised_prompt": response_data[0].get("revised_prompt"),
+            "quality": response_payload.get("quality"),
+            "size": response_payload.get("size"),
+            "output_format": response_payload.get("output_format") or output_format,
+            "background": response_payload.get("background"),
+            "usage": response_payload.get("usage"),
+        }
 
     async def _stream_sse(self, path: str, payload: dict) -> AsyncIterator[dict]:
         """函数作用：发送流式请求并解析 SSE JSON 数据。

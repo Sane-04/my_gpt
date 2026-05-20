@@ -86,7 +86,7 @@ watch(
 <template>
   <div
     ref="scrollContainer"
-    class="min-h-0 flex-1 overflow-y-auto border-y border-zinc-200 bg-zinc-50"
+    class="min-h-0 flex-1 overflow-y-auto bg-zinc-50"
     @scroll="handleScroll"
   >
     <div v-if="messages.length === 0" class="flex min-h-full items-center justify-center">

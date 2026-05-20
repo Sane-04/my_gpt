@@ -131,7 +131,7 @@ def test_create_conversation_defaults_blank_title():
 
 
 def test_delete_conversation_hard_deletes_messages_and_conversation():
-    """函数作用：验证硬删除会先删除消息再删除会话。
+    """函数作用：验证硬删除会先删除会话级子记录再删除会话。
     输入参数：无。
     输出参数：无返回值，断言失败时由 pytest 报错。
     """
@@ -146,7 +146,7 @@ def test_delete_conversation_hard_deletes_messages_and_conversation():
     assert deleted is True
     assert session.deleted == [conversation]
     assert session.committed is True
-    assert len(session.executed_statements) == 2
+    assert len(session.executed_statements) == 4
 
 
 def test_create_message_updates_owned_conversation_updated_at():
