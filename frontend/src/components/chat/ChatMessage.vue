@@ -1,14 +1,31 @@
 ﻿<!-- 模块说明：前端 Vue 组件模块，封装页面可复用的 UI 与交互片段。 -->
 <script setup lang="ts">
-import { CircleAlert, Download, User } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { Capacitor, registerPlugin } from '@capacitor/core'
+import { CircleAlert, Download, User, X } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 import ToolNotice from '@/components/chat/ToolNotice.vue'
 import type { Message } from '@/types/domain'
 import { escapeHtml, renderMarkdown } from '@/utils/markdown'
 
+type MessageImage = NonNullable<Message['images']>[number]
+
+interface ImageSaverPlugin {
+  saveImageToGallery(options: {
+    fileName: string
+    mimeType: string
+    base64Data: string
+  }): Promise<{ uri: string }>
+}
+
+const ImageSaver = registerPlugin<ImageSaverPlugin>('ImageSaver')
+
 const props = defineProps<{
   message: Message
 }>()
+
+const previewImage = ref<MessageImage | null>(null)
+const imageSaveStatus = ref('')
+let imageSaveStatusTimer: number | null = null
 
 // 只有助手消息需要 Markdown 渲染；用户消息保持纯文本，避免不必要的 HTML 注入面。
 const renderedContent = computed(() => {
@@ -126,14 +143,77 @@ async function handleMarkdownClick(event: MouseEvent) {
   window.open(href, '_blank', 'noreferrer')
 }
 
-/** 函数作用：下载消息中的图片；输入参数：dataUrl 图片 data URL、name 文件名；输出参数：无返回值。 */
-function downloadImage(dataUrl: string, name: string) {
+/** 函数作用：展示图片保存状态并自动清理；输入参数：message 状态文案；输出参数：无返回值。 */
+function showImageSaveStatus(message: string) {
+  imageSaveStatus.value = message
+  if (imageSaveStatusTimer !== null) {
+    window.clearTimeout(imageSaveStatusTimer)
+  }
+  imageSaveStatusTimer = window.setTimeout(() => {
+    imageSaveStatus.value = ''
+    imageSaveStatusTimer = null
+  }, 1800)
+}
+
+/** 函数作用：解析 data URL 图片信息；输入参数：dataUrl 图片 data URL、name 文件名；输出参数：图片保存参数或 null。 */
+function parseImageDataUrl(dataUrl: string, name: string) {
+  const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)
+  if (!match) {
+    return null
+  }
+
+  const mimeType = match[1]
+  const extension = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'png'
+  const safeName = (name || `generated-image.${extension}`)
+    .replace(/[\\/:*?"<>|]+/g, '-')
+    .replace(/\s+/g, '-')
+  return {
+    mimeType,
+    base64Data: match[2],
+    fileName: safeName.includes('.') ? safeName : `${safeName}.${extension}`,
+  }
+}
+
+/** 函数作用：打开图片预览弹层；输入参数：image 消息图片；输出参数：无返回值。 */
+function openImagePreview(image: MessageImage) {
+  previewImage.value = image
+}
+
+/** 函数作用：关闭图片预览弹层；输入参数：无；输出参数：无返回值。 */
+function closeImagePreview() {
+  previewImage.value = null
+}
+
+/** 函数作用：使用浏览器能力下载图片；输入参数：dataUrl 图片 data URL、name 文件名；输出参数：无返回值。 */
+function downloadImageInBrowser(dataUrl: string, name: string) {
   const link = document.createElement('a')
   link.href = dataUrl
   link.download = name || 'generated-image.png'
   document.body.appendChild(link)
   link.click()
   link.remove()
+}
+
+/** 函数作用：下载消息中的图片；输入参数：dataUrl 图片 data URL、name 文件名；输出参数：Promise<void>。 */
+async function downloadImage(dataUrl: string, name: string) {
+  if (!Capacitor.isNativePlatform()) {
+    downloadImageInBrowser(dataUrl, name)
+    return
+  }
+
+  const imageData = parseImageDataUrl(dataUrl, name)
+  if (!imageData) {
+    downloadImageInBrowser(dataUrl, name)
+    return
+  }
+
+  try {
+    await ImageSaver.saveImageToGallery(imageData)
+    showImageSaveStatus('已保存到相册')
+  } catch {
+    showImageSaveStatus('保存失败，已尝试浏览器下载')
+    downloadImageInBrowser(dataUrl, name)
+  }
 }
 </script>
 
@@ -176,19 +256,22 @@ function downloadImage(dataUrl: string, name: string) {
           class="group relative overflow-hidden rounded-md border"
           :class="message.role === 'user' ? 'border-white/20' : 'border-zinc-200'"
         >
-          <a :href="image.dataUrl" target="_blank" rel="noreferrer" class="block">
+          <button type="button" class="block w-full" :aria-label="`预览 ${image.name}`" @click="openImagePreview(image)">
             <img :src="image.dataUrl" :alt="image.name" class="aspect-square w-full object-cover" />
-          </a>
+          </button>
           <button
             v-if="image.source === 'generated'"
             type="button"
             class="absolute right-1.5 top-1.5 inline-flex size-8 items-center justify-center rounded-md bg-white/90 text-zinc-700 opacity-100 shadow-sm transition hover:bg-white hover:text-zinc-950 sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100"
             :aria-label="`下载 ${image.name}`"
-            @click="downloadImage(image.dataUrl, image.name)"
+            @click.stop="downloadImage(image.dataUrl, image.name)"
           >
             <Download class="size-4" />
           </button>
         </div>
+      </div>
+      <div v-if="imageSaveStatus" class="mt-2 text-xs text-emerald-600">
+        {{ imageSaveStatus }}
       </div>
 
       <div
@@ -208,4 +291,38 @@ function downloadImage(dataUrl: string, name: string) {
       <User class="size-4" />
     </div>
   </article>
+
+  <Teleport to="body">
+    <div
+      v-if="previewImage"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+      role="dialog"
+      aria-modal="true"
+      @click="closeImagePreview"
+    >
+      <button
+        type="button"
+        class="absolute right-4 top-4 inline-flex size-10 items-center justify-center rounded-md bg-white/10 text-white transition hover:bg-white/20"
+        aria-label="关闭图片预览"
+        @click.stop="closeImagePreview"
+      >
+        <X class="size-5" />
+      </button>
+      <img
+        :src="previewImage.dataUrl"
+        :alt="previewImage.name"
+        class="max-h-full max-w-full rounded-md object-contain"
+        @click.stop
+      />
+      <button
+        v-if="previewImage.source === 'generated'"
+        type="button"
+        class="absolute bottom-4 right-4 inline-flex size-10 items-center justify-center rounded-md bg-white text-zinc-800 shadow-sm transition hover:bg-zinc-100"
+        :aria-label="`保存 ${previewImage.name}`"
+        @click.stop="downloadImage(previewImage.dataUrl, previewImage.name)"
+      >
+        <Download class="size-5" />
+      </button>
+    </div>
+  </Teleport>
 </template>
