@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     image_quality: str = Field(default="high", alias="IMAGE_QUALITY")
     image_output_format: str = Field(default="png", alias="IMAGE_OUTPUT_FORMAT")
     image_intent_context_size: int = Field(default=5, alias="IMAGE_INTENT_CONTEXT_SIZE")
+    image_http_timeout_seconds: float = Field(default=360.0, alias="IMAGE_HTTP_TIMEOUT_SECONDS")
     # Embedding 配置：独立于聊天模型配置，避免不同供应商或网关混用鉴权信息。
     embedding_api_key: str = Field(default="", alias="EMBEDDING_API_KEY")
     embedding_base_url: str = Field(default="", alias="EMBEDDING_BASE_URL")

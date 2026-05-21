@@ -231,7 +231,19 @@ class ChatCompletionsModelClient:
             "output_format": output_format,
             "n": 1,
         }
-        response = await self._post_json("/images/generations", payload)
+        settings = get_settings()
+        timeout_seconds = max(float(getattr(settings, "image_http_timeout_seconds", 360.0)), 1.0)
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_seconds, connect=min(timeout_seconds, 10.0))) as client:
+            image_response = await client.post(
+                self._api_url("/images/generations"),
+                headers=self._headers(),
+                json=payload,
+            )
+
+        if image_response.status_code >= 400:
+            raise ModelStreamError(image_response.text or f"模型 HTTP 调用失败：{image_response.status_code}")
+
+        response = image_response.json()
         data = response.get("data") or []
         if not data or not isinstance(data[0], dict) or not data[0].get("b64_json"):
             raise ModelStreamError("图片生成响应缺少 data[0].b64_json")
@@ -281,7 +293,7 @@ class ChatCompletionsModelClient:
             files.append(("image[]", (filename, image_bytes, mime_type)))
 
         settings = get_settings()
-        timeout_seconds = max(float(getattr(settings, "model_http_timeout_seconds", 60.0)), 1.0)
+        timeout_seconds = max(float(getattr(settings, "image_http_timeout_seconds", 360.0)), 1.0)
         data = {
             "model": model,
             "prompt": prompt,
