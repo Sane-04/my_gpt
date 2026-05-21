@@ -1,7 +1,7 @@
 ﻿<!-- 模块说明：前端 Vue 组件模块，封装页面可复用的 UI 与交互片段。 -->
 <script setup lang="ts">
-import { ImagePlus, Mic, MicOff, Search, SendHorizontal, Square, X } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { ImagePlus, Search, SendHorizontal, Square, X } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 import IconButton from '@/components/base/IconButton.vue'
 import type { ChatImageInput } from '@/types/chat'
 
@@ -19,40 +19,11 @@ const enableWebSearch = ref(false)
 const imageInput = ref<HTMLInputElement | null>(null)
 const images = ref<ChatImageInput[]>([])
 const imageError = ref('')
-const isListening = ref(false)
-const speechError = ref('')
-const interimSpeechText = ref('')
 const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
 const maxImageCount = 5
 const maxImageSize = 10 * 1024 * 1024
-let speechRecognition: SpeechRecognition | null = null
-let speechRestartTimer: number | null = null
-let speechShouldRestartOnAbort = false
-let speechStopRequested = false
 // 只有有输入或图片，且没有流式生成时才允许发送。
 const canSend = computed(() => (content.value.trim().length > 0 || images.value.length > 0) && !props.isStreaming)
-const isSpeechSupported = computed(() => getSpeechRecognitionConstructor() !== null)
-const speechStatusText = computed(() => {
-  if (speechError.value || interimSpeechText.value) {
-    return speechError.value || interimSpeechText.value
-  }
-
-  if (!isSpeechSupported.value && !props.isStreaming) {
-    return '当前浏览器不支持语音输入'
-  }
-
-  return ''
-})
-const speechStatusClass = computed(() => (speechError.value || !isSpeechSupported.value ? 'text-red-600' : 'text-zinc-500'))
-
-/** 函数作用：获取当前浏览器可用的语音识别构造器；输入参数：无；输出参数：语音识别构造器或 null。 */
-function getSpeechRecognitionConstructor() {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null
-}
 
 /** 函数作用：把图片文件读取为 Base64 data URL；输入参数：file 图片文件；输出参数：Promise<string>。 */
 function readImageAsDataUrl(file: File) {
@@ -132,161 +103,6 @@ function removeImage(index: number) {
   imageError.value = ''
 }
 
-/** 函数作用：清理语音识别重启定时器；输入参数：无；输出参数：无返回值。 */
-function clearSpeechRestartTimer() {
-  if (speechRestartTimer === null) {
-    return
-  }
-
-  window.clearTimeout(speechRestartTimer)
-  speechRestartTimer = null
-}
-
-/** 函数作用：清理当前语音识别实例引用；输入参数：无；输出参数：无返回值。 */
-function cleanupSpeechRecognitionInstance() {
-  if (!speechRecognition) {
-    return
-  }
-
-  speechRecognition.onresult = null
-  speechRecognition.onerror = null
-  speechRecognition.onend = null
-  speechRecognition = null
-}
-
-/** 函数作用：停止当前语音识别；输入参数：无；输出参数：无返回值。 */
-function stopSpeechRecognition() {
-  clearSpeechRestartTimer()
-  speechShouldRestartOnAbort = false
-  speechStopRequested = true
-  if (!speechRecognition) {
-    isListening.value = false
-    interimSpeechText.value = ''
-    return
-  }
-
-  const currentRecognition = speechRecognition
-  cleanupSpeechRecognitionInstance()
-  currentRecognition.stop()
-  isListening.value = false
-  interimSpeechText.value = ''
-}
-
-/** 函数作用：根据错误类型展示语音识别提示；输入参数：error 错误类型；输出参数：无返回值。 */
-function setSpeechError(error: string) {
-  if (error === 'not-allowed' || error === 'service-not-allowed') {
-    speechError.value = '需要允许麦克风权限'
-    return
-  }
-
-  if (error === 'no-speech') {
-    speechError.value = '没有识别到语音'
-    return
-  }
-
-  if (error === 'audio-capture') {
-    speechError.value = '无法访问麦克风，请检查系统或浏览器权限'
-    return
-  }
-
-  if (error === 'network') {
-    speechError.value = '语音识别服务网络不可用，请换网络或稍后重试'
-    return
-  }
-
-  if (error === 'language-not-supported') {
-    speechError.value = '当前浏览器不支持中文语音识别'
-    return
-  }
-
-  if (error === 'aborted') {
-    speechError.value = '语音输入被浏览器中断，正在重试...'
-    return
-  }
-
-  speechError.value = `语音输入暂时不可用：${error || '未知错误'}`
-}
-
-/** 函数作用：把语音识别结果写入输入框；输入参数：event 语音识别结果事件；输出参数：无返回值。 */
-function handleSpeechResult(event: SpeechRecognitionEvent) {
-  let finalText = ''
-  let interimText = ''
-
-  for (let index = event.resultIndex; index < event.results.length; index += 1) {
-    const result = event.results[index]
-    const transcript = result?.[0]?.transcript ?? ''
-
-    if (result?.isFinal) {
-      finalText += transcript
-    } else {
-      interimText += transcript
-    }
-  }
-
-  const normalizedFinalText = finalText.trim()
-  if (normalizedFinalText) {
-    const separator = content.value.trim() ? ' ' : ''
-    content.value = `${content.value.trimEnd()}${separator}${normalizedFinalText}`
-  }
-
-  interimSpeechText.value = interimText.trim()
-}
-
-/** 函数作用：启动或停止浏览器原生语音识别；输入参数：无；输出参数：无返回值。 */
-function toggleSpeechRecognition() {
-  if (isListening.value) {
-    stopSpeechRecognition()
-    return
-  }
-
-  const SpeechRecognitionConstructor = getSpeechRecognitionConstructor()
-  if (!SpeechRecognitionConstructor) {
-    speechError.value = '当前浏览器不支持语音输入'
-    return
-  }
-
-  speechError.value = ''
-  interimSpeechText.value = ''
-  speechShouldRestartOnAbort = true
-  speechStopRequested = false
-  speechRecognition = new SpeechRecognitionConstructor()
-  speechRecognition.lang = 'zh-CN'
-  speechRecognition.continuous = false
-  speechRecognition.interimResults = true
-  speechRecognition.onresult = handleSpeechResult
-  speechRecognition.onerror = (event) => {
-    setSpeechError(event.error)
-    speechShouldRestartOnAbort = event.error === 'aborted' && !speechStopRequested
-  }
-  speechRecognition.onend = () => {
-    cleanupSpeechRecognitionInstance()
-    isListening.value = false
-    interimSpeechText.value = ''
-
-    if (!speechShouldRestartOnAbort || speechStopRequested || props.isStreaming) {
-      speechShouldRestartOnAbort = false
-      return
-    }
-
-    speechShouldRestartOnAbort = false
-    clearSpeechRestartTimer()
-    speechRestartTimer = window.setTimeout(() => {
-      speechRestartTimer = null
-      if (!props.isStreaming && !isListening.value) {
-        toggleSpeechRecognition()
-      }
-    }, 1200)
-  }
-
-  try {
-    speechRecognition.start()
-    isListening.value = true
-  } catch {
-    speechError.value = '语音输入启动失败'
-    stopSpeechRecognition()
-  }
-}
-
 /** 函数作用：提交当前输入内容；输入参数：无；输出参数：无返回值。 */
 function handleSubmit() {
   const nextContent = content.value.trim()
@@ -296,11 +112,9 @@ function handleSubmit() {
   }
 
   emit('send', nextContent, enableWebSearch.value, [...images.value])
-  stopSpeechRecognition()
   content.value = ''
   images.value = []
   imageError.value = ''
-  speechError.value = ''
 }
 
 /** 函数作用：处理 Enter 发送、Shift+Enter 换行；输入参数：event 键盘事件；输出参数：无返回值。 */
@@ -312,15 +126,6 @@ function handleKeydown(event: KeyboardEvent) {
   event.preventDefault()
   handleSubmit()
 }
-
-watch(
-  () => props.isStreaming,
-  (isStreaming) => {
-    if (isStreaming) {
-      stopSpeechRecognition()
-    }
-  },
-)
 </script>
 
 <template>
@@ -343,9 +148,6 @@ watch(
       </div>
     </div>
     <div v-if="imageError" class="mb-2 text-xs text-red-600">{{ imageError }}</div>
-    <div v-if="speechStatusText" class="mb-2 text-xs" :class="speechStatusClass">
-      {{ speechStatusText }}
-    </div>
     <div class="flex items-center gap-2">
       <input
         ref="imageInput"
@@ -359,7 +161,7 @@ watch(
       <textarea
         v-model="content"
         rows="1"
-        placeholder="勇敢牛牛，不怕困难！"
+        placeholder="勇敢牛牛！"
         class="max-h-40 min-h-10 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-2.5 text-sm leading-5 text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-zinc-50 dark:placeholder:text-zinc-500"
         :disabled="isStreaming"
         @keydown="handleKeydown"
@@ -372,18 +174,6 @@ watch(
       <template v-else>
         <IconButton label="上传图片" @click="openImagePicker">
           <ImagePlus class="size-5" />
-        </IconButton>
-        <IconButton
-          :label="isListening ? '停止语音输入' : '语音输入'"
-          :disabled="!isSpeechSupported"
-          :class="{
-            'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800': isListening,
-            'opacity-40': !isSpeechSupported,
-          }"
-          @click="toggleSpeechRecognition"
-        >
-          <MicOff v-if="isListening" class="size-5" />
-          <Mic v-else class="size-5" />
         </IconButton>
         <IconButton
           label="联网搜索"

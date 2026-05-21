@@ -1,8 +1,7 @@
 ﻿<!-- 模块说明：前端 Vue 组件模块，封装页面可复用的 UI 与交互片段。 -->
 <script setup lang="ts">
-import { CircleAlert, Download, User, Volume2, VolumeX } from 'lucide-vue-next'
-import { computed, onBeforeUnmount, ref } from 'vue'
-import IconButton from '@/components/base/IconButton.vue'
+import { CircleAlert, Download, User } from 'lucide-vue-next'
+import { computed } from 'vue'
 import ToolNotice from '@/components/chat/ToolNotice.vue'
 import type { Message } from '@/types/domain'
 import { escapeHtml, renderMarkdown } from '@/utils/markdown'
@@ -10,29 +9,6 @@ import { escapeHtml, renderMarkdown } from '@/utils/markdown'
 const props = defineProps<{
   message: Message
 }>()
-
-const isSpeaking = ref(false)
-const speechSynthesisError = ref('')
-const isSpeechSynthesisSupported = computed(() => (
-  typeof window !== 'undefined'
-  && 'speechSynthesis' in window
-  && 'SpeechSynthesisUtterance' in window
-))
-const shouldShowSpeakButton = computed(() => (
-  props.message.role === 'assistant'
-  && props.message.content.trim().length > 0
-))
-const speechSynthesisStatusText = computed(() => {
-  if (speechSynthesisError.value) {
-    return speechSynthesisError.value
-  }
-
-  if (shouldShowSpeakButton.value && !isSpeechSynthesisSupported.value) {
-    return '当前浏览器不支持朗读'
-  }
-
-  return ''
-})
 
 // 只有助手消息需要 Markdown 渲染；用户消息保持纯文本，避免不必要的 HTML 注入面。
 const renderedContent = computed(() => {
@@ -150,52 +126,6 @@ async function handleMarkdownClick(event: MouseEvent) {
   window.open(href, '_blank', 'noreferrer')
 }
 
-/** 函数作用：停止当前浏览器语音播报；输入参数：无；输出参数：无返回值。 */
-function stopSpeaking() {
-  if (!isSpeechSynthesisSupported.value) {
-    return
-  }
-
-  window.speechSynthesis.cancel()
-  isSpeaking.value = false
-}
-
-/** 函数作用：朗读或停止朗读助手消息；输入参数：无；输出参数：无返回值。 */
-function toggleSpeaking() {
-  if (!shouldShowSpeakButton.value) {
-    return
-  }
-
-  if (!isSpeechSynthesisSupported.value) {
-    speechSynthesisError.value = '当前浏览器不支持朗读'
-    return
-  }
-
-  if (isSpeaking.value) {
-    stopSpeaking()
-    return
-  }
-
-  try {
-    speechSynthesisError.value = ''
-    window.speechSynthesis.cancel()
-    const utterance = new window.SpeechSynthesisUtterance(props.message.content)
-    utterance.lang = 'zh-CN'
-    utterance.onend = () => {
-      isSpeaking.value = false
-    }
-    utterance.onerror = () => {
-      isSpeaking.value = false
-      speechSynthesisError.value = '朗读失败，请检查浏览器语音播放权限'
-    }
-    isSpeaking.value = true
-    window.speechSynthesis.speak(utterance)
-  } catch {
-    isSpeaking.value = false
-    speechSynthesisError.value = '朗读启动失败，请换浏览器重试'
-  }
-}
-
 /** 函数作用：下载消息中的图片；输入参数：dataUrl 图片 data URL、name 文件名；输出参数：无返回值。 */
 function downloadImage(dataUrl: string, name: string) {
   const link = document.createElement('a')
@@ -205,12 +135,6 @@ function downloadImage(dataUrl: string, name: string) {
   link.click()
   link.remove()
 }
-
-onBeforeUnmount(() => {
-  if (isSpeaking.value) {
-    stopSpeaking()
-  }
-})
 </script>
 
 <template>
@@ -244,24 +168,6 @@ onBeforeUnmount(() => {
       <!-- renderedContent 来自 markdown-it，且 html=false；这里仅用于展示受控 Markdown。 -->
       <div v-if="message.role === 'assistant'" class="markdown-body" @click="handleMarkdownClick" v-html="renderedContent" />
       <div v-else class="whitespace-pre-wrap break-words">{{ message.content }}</div>
-
-      <div v-if="shouldShowSpeakButton" class="mt-3 hidden justify-end sm:flex">
-        <IconButton
-          :label="isSpeechSynthesisSupported ? (isSpeaking ? '停止朗读' : '朗读回答') : '当前浏览器不支持朗读'"
-          :disabled="!isSpeechSynthesisSupported"
-          :class="{
-            'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800': isSpeaking,
-            'opacity-40': !isSpeechSynthesisSupported,
-          }"
-          @click="toggleSpeaking"
-        >
-          <VolumeX v-if="isSpeaking" class="size-4" />
-          <Volume2 v-else class="size-4" />
-        </IconButton>
-      </div>
-      <div v-if="speechSynthesisStatusText" class="mt-2 text-right text-xs text-red-600">
-        {{ speechSynthesisStatusText }}
-      </div>
 
       <div v-if="message.images?.length" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         <div
