@@ -3,6 +3,8 @@
 # Built application files
 *.apk
 *.aar
+!app/libs/SparkChain.aar
+!app/libs/Codec.aar
 *.ap_
 *.aab
 

@@ -1,0 +1,4 @@
+#Mon Apr 20 12:56:18 CST 2026
+base.0=D\:\\iflytek\\aikit\\demo\\Sparkchain\\Andorid\\SparkChain_Android_SDK_2.0.1_rc3_260309\\Sample\\app\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

@@ -1,8 +1,23 @@
 apply plugin: 'com.android.application'
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { stream ->
+        localProperties.load(stream)
+    }
+}
+
+def xunfeiAppId = localProperties.getProperty('XUNFEI_APP_ID', '')
+def xunfeiApiKey = localProperties.getProperty('XUNFEI_API_KEY', '')
+def xunfeiApiSecret = localProperties.getProperty('XUNFEI_API_SECRET', '')
+
 android {
     namespace = "bond.cyandsane.saneai"
     compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId "bond.cyandsane.saneai"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -10,6 +25,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "XUNFEI_APP_ID", "\"${xunfeiAppId}\""
+        buildConfigField "String", "XUNFEI_API_KEY", "\"${xunfeiApiKey}\""
+        buildConfigField "String", "XUNFEI_API_SECRET", "\"${xunfeiApiSecret}\""
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -36,6 +54,9 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    implementation files('libs/SparkChain.aar')
+    implementation files('libs/Codec.aar')
+    implementation 'com.google.code.gson:gson:2.8.8'
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

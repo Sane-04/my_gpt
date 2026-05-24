@@ -1,0 +1,344 @@
+-- Merging decision tree log ---
+manifest
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+MERGED from [SparkChain.aar] D:\.gradle\caches\transforms-3\d424d5bba7dfb09387dcfd1f19c78a0f\transformed\jetified-SparkChain\AndroidManifest.xml:2:1-8:12
+MERGED from [Codec.aar] D:\.gradle\caches\transforms-3\79387c5b0f04c3db543bd3876620113c\transformed\jetified-Codec\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.material:material:1.6.0] D:\.gradle\caches\transforms-3\35d1c504b59fe7414306da83b845d8b4\transformed\material-1.6.0\AndroidManifest.xml:17:1-26:12
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] D:\.gradle\caches\transforms-3\01f4fdf7a9e69d5f7f635af3c1d0102b\transformed\constraintlayout-2.1.4\AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.appcompat:appcompat:1.2.0] D:\.gradle\caches\transforms-3\6397ab5f28a6e87d56088382d90c68b7\transformed\appcompat-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [com.hjq:xxpermissions:8.2] D:\.gradle\caches\transforms-3\bfc9d4f0f5601d47d4808b5cffb8ffb3\transformed\jetified-xxpermissions-8.2\AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] D:\.gradle\caches\transforms-3\64bee6bd8a7617350ae7ba70dec2ca8f\transformed\cursoradapter-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] D:\.gradle\caches\transforms-3\3ed9bb97f4060b7936ad18436b95bdd6\transformed\jetified-appcompat-resources-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] D:\.gradle\caches\transforms-3\edaa8a2c21e71fc1adc076f33fada5bd\transformed\drawerlayout-1.1.1\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] D:\.gradle\caches\transforms-3\aaa4a8da806f37b6685702fa97d3a210\transformed\jetified-viewpager2-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment:1.2.5] D:\.gradle\caches\transforms-3\13306929a4b9ed6856eef4cea55a5e7f\transformed\fragment-1.2.5\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] D:\.gradle\caches\transforms-3\012b63bdc03cbc670d27980c6c77c28f\transformed\coordinatorlayout-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] D:\.gradle\caches\transforms-3\42357f9d491c6f968b987909f04c9f43\transformed\dynamicanimation-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.transition:transition:1.2.0] D:\.gradle\caches\transforms-3\f0c3f3e9d5674c0655acb9478c205a4b\transformed\transition-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] D:\.gradle\caches\transforms-3\d7856edfa443b6fe6b3206ef5e72b5d1\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] D:\.gradle\caches\transforms-3\65549fbb33dc5f479ec69c331e354af8\transformed\vectordrawable-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] D:\.gradle\caches\transforms-3\7260d30e440b36296b205ec875f82cb4\transformed\viewpager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] D:\.gradle\caches\transforms-3\9d6a9b815b8b84389603054e5ae705fd\transformed\recyclerview-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.customview:customview:1.1.0] D:\.gradle\caches\transforms-3\22f75c90e47d0ec6dae37b263251b2dc\transformed\customview-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] D:\.gradle\caches\transforms-3\87ccaefff0d1b40f67726465517dd870\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] D:\.gradle\caches\transforms-3\09b91e520ca13343c5ca499f9a75f1db\transformed\loader-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity:1.1.0] D:\.gradle\caches\transforms-3\a440b60b271914ef0aa5fdda8702714d\transformed\jetified-activity-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.core:core:1.5.0] D:\.gradle\caches\transforms-3\0b4282b9c7a0a5d3d545dd052b4671aa\transformed\core-1.5.0\AndroidManifest.xml:17:1-26:12
+MERGED from [androidx.cardview:cardview:1.0.0] D:\.gradle\caches\transforms-3\9b9b248a05b801dc52e230016fa0b6bd\transformed\cardview-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] D:\.gradle\caches\transforms-3\5a8f3ac820c91eda7b971ca16d8b8c2e\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0] D:\.gradle\caches\transforms-3\5b54dac375e9746e103cbad969d8bd69\transformed\jetified-lifecycle-viewmodel-savedstate-2.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.2.0] D:\.gradle\caches\transforms-3\6e49b4a666f3cfab859ebbda885b9f7d\transformed\lifecycle-viewmodel-2.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] D:\.gradle\caches\transforms-3\cc34e081db2a4f2014e09cf2c4e4e15e\transformed\interpolator-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] D:\.gradle\caches\transforms-3\ed1c61da30410041dab37494e1c80ee4\transformed\lifecycle-runtime-2.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.savedstate:savedstate:1.0.0] D:\.gradle\caches\transforms-3\74051b0586490939329de0db8a5e03aa\transformed\jetified-savedstate-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] D:\.gradle\caches\transforms-3\a6e62cd388144518a5020d9d3fb6399c\transformed\lifecycle-livedata-2.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.2.0] D:\.gradle\caches\transforms-3\e21c986c5e2e4151315b3227f54b096f\transformed\lifecycle-livedata-core-2.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.arch.core:core-runtime:2.1.0] D:\.gradle\caches\transforms-3\798325f21fba9d6f1890bb25ce759c0a\transformed\core-runtime-2.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] D:\.gradle\caches\transforms-3\982f5b8d6aa88da775d0f8f7820af652\transformed\documentfile-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] D:\.gradle\caches\transforms-3\bfc7616f385cc5247c5db8ac2a1736a4\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] D:\.gradle\caches\transforms-3\e999af1698990238ab571e40fdade514\transformed\print-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.annotation:annotation-experimental:1.0.0] D:\.gradle\caches\transforms-3\10221f4dafaffc3153931c3005102f68\transformed\jetified-annotation-experimental-1.0.0\AndroidManifest.xml:17:1-24:12
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+	package
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:4:5-41
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+	xmlns:tools
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:3:5-51
+	android:versionCode
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:1-98:12
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:2:11-69
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:5:5-81
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:5:22-78
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:6:5-80
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:6:22-77
+uses-permission#android.permission.INTERNET
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:7:5-67
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:7:22-64
+uses-permission#android.permission.MANAGE_EXTERNAL_STORAGE
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:8:5-82
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:8:22-79
+uses-permission#android.permission.RECORD_AUDIO
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:9:5-71
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:9:22-68
+application
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:11:5-96:19
+MERGED from [com.google.android.material:material:1.6.0] D:\.gradle\caches\transforms-3\35d1c504b59fe7414306da83b845d8b4\transformed\material-1.6.0\AndroidManifest.xml:24:5-20
+MERGED from [com.google.android.material:material:1.6.0] D:\.gradle\caches\transforms-3\35d1c504b59fe7414306da83b845d8b4\transformed\material-1.6.0\AndroidManifest.xml:24:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] D:\.gradle\caches\transforms-3\01f4fdf7a9e69d5f7f635af3c1d0102b\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] D:\.gradle\caches\transforms-3\01f4fdf7a9e69d5f7f635af3c1d0102b\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
+MERGED from [androidx.core:core:1.5.0] D:\.gradle\caches\transforms-3\0b4282b9c7a0a5d3d545dd052b4671aa\transformed\core-1.5.0\AndroidManifest.xml:24:5-89
+MERGED from [androidx.core:core:1.5.0] D:\.gradle\caches\transforms-3\0b4282b9c7a0a5d3d545dd052b4671aa\transformed\core-1.5.0\AndroidManifest.xml:24:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] D:\.gradle\caches\transforms-3\5a8f3ac820c91eda7b971ca16d8b8c2e\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] D:\.gradle\caches\transforms-3\5a8f3ac820c91eda7b971ca16d8b8c2e\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+	android:requestLegacyExternalStorage
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:17:9-52
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.5.0] D:\.gradle\caches\transforms-3\0b4282b9c7a0a5d3d545dd052b4671aa\transformed\core-1.5.0\AndroidManifest.xml:24:18-86
+	android:supportsRtl
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:16:9-35
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:14:9-41
+	android:roundIcon
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:15:9-54
+	android:icon
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:13:9-43
+	android:allowBackup
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:12:9-35
+	android:theme
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:18:9-50
+activity#com.example.sparkchaindemo.MainActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:19:9-27:20
+	android:exported
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:21:13-36
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:20:13-67
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:22:13-26:29
+action#android.intent.action.MAIN
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:23:17-69
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:23:25-66
+category#android.intent.category.LAUNCHER
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:25:17-77
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:25:27-74
+activity#com.example.sparkchaindemo.llm.online_llm.chat.ChatActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:28:9-30:39
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:30:13-36
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:29:13-61
+activity#com.example.sparkchaindemo.llm.online_llm.tti.ttiDemoActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:31:9-33:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:33:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:32:13-63
+activity#com.example.sparkchaindemo.llm.online_llm.image_understanding.ImageUnderstanding
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:34:9-36:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:36:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:35:13-82
+activity#com.example.sparkchaindemo.llm.online_llm.embedding.EmbeddingActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:37:9-39:37
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:39:13-34
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:38:13-71
+activity#com.example.sparkchaindemo.llm.online_llm.personatetts.PersonateTTSActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:40:9-42:37
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:42:13-34
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:41:13-77
+activity#com.example.sparkchaindemo.llm.online_llm.bm.bmmDemoActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:43:9-45:40
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:45:13-37
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:44:13-62
+activity#com.example.sparkchaindemo.llm.online_llm.bm.bmcDemoActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:46:9-48:39
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:48:13-36
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:47:13-62
+activity#com.example.sparkchaindemo.llm.online_llm.bm.bmModeChoiceActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:49:9-51:37
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:51:13-34
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:50:13-67
+activity#com.example.sparkchaindemo.llm.online_llm.function.ChatWithFuctionCallActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:52:9-54:44
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:54:13-41
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:53:13-80
+activity#com.example.sparkchaindemo.llm.online_llm.rtasr.RTASRLLMActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:55:9-57:41
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:57:13-38
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:56:13-66
+activity#com.example.sparkchaindemo.llm.online_llm.raasr.RAASRLLMActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:58:9-60:41
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:60:13-38
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:59:13-66
+activity#com.example.sparkchaindemo.llm.online_llm.online_llm_mainActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:61:9-63:37
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:63:13-34
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:62:13-67
+activity#com.example.sparkchaindemo.ai.AIMainActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:64:9-66:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:66:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:65:13-46
+activity#com.example.sparkchaindemo.ai.rtasr.RTASRActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:67:9-69:38
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:69:13-35
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:68:13-51
+activity#com.example.sparkchaindemo.ai.itrans.ITSActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:70:9-72:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:72:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:71:13-50
+activity#com.example.sparkchaindemo.ai.tts.TTSActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:73:9-75:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:75:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:74:13-47
+activity#com.example.sparkchaindemo.ai.asr.asrActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:76:9-78:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:78:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:77:13-47
+activity#com.example.sparkchaindemo.ai.raasr.RAASRActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:79:9-81:38
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:81:13-35
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:80:13-51
+activity#com.example.sparkchaindemo.ai.imageTrans.IMTSActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:82:9-84:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:84:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:83:13-55
+activity#com.example.sparkchaindemo.ai.ist.ISTActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:85:9-87:36
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:87:13-33
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:86:13-47
+activity#com.example.sparkchaindemo.ai.feature.FeatureActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:88:9-90:34
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:90:13-31
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:89:13-55
+activity#com.example.sparkchaindemo.ai.vc.VCActivity
+ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:91:9-93:40
+	android:label
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:93:13-37
+	android:name
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:92:13-45
+uses-sdk
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+MERGED from [SparkChain.aar] D:\.gradle\caches\transforms-3\d424d5bba7dfb09387dcfd1f19c78a0f\transformed\jetified-SparkChain\AndroidManifest.xml:6:5-44
+MERGED from [SparkChain.aar] D:\.gradle\caches\transforms-3\d424d5bba7dfb09387dcfd1f19c78a0f\transformed\jetified-SparkChain\AndroidManifest.xml:6:5-44
+MERGED from [Codec.aar] D:\.gradle\caches\transforms-3\79387c5b0f04c3db543bd3876620113c\transformed\jetified-Codec\AndroidManifest.xml:5:5-44
+MERGED from [Codec.aar] D:\.gradle\caches\transforms-3\79387c5b0f04c3db543bd3876620113c\transformed\jetified-Codec\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.material:material:1.6.0] D:\.gradle\caches\transforms-3\35d1c504b59fe7414306da83b845d8b4\transformed\material-1.6.0\AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.material:material:1.6.0] D:\.gradle\caches\transforms-3\35d1c504b59fe7414306da83b845d8b4\transformed\material-1.6.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] D:\.gradle\caches\transforms-3\01f4fdf7a9e69d5f7f635af3c1d0102b\transformed\constraintlayout-2.1.4\AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] D:\.gradle\caches\transforms-3\01f4fdf7a9e69d5f7f635af3c1d0102b\transformed\constraintlayout-2.1.4\AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.appcompat:appcompat:1.2.0] D:\.gradle\caches\transforms-3\6397ab5f28a6e87d56088382d90c68b7\transformed\appcompat-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.2.0] D:\.gradle\caches\transforms-3\6397ab5f28a6e87d56088382d90c68b7\transformed\appcompat-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [com.hjq:xxpermissions:8.2] D:\.gradle\caches\transforms-3\bfc9d4f0f5601d47d4808b5cffb8ffb3\transformed\jetified-xxpermissions-8.2\AndroidManifest.xml:7:5-9:41
+MERGED from [com.hjq:xxpermissions:8.2] D:\.gradle\caches\transforms-3\bfc9d4f0f5601d47d4808b5cffb8ffb3\transformed\jetified-xxpermissions-8.2\AndroidManifest.xml:7:5-9:41
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] D:\.gradle\caches\transforms-3\64bee6bd8a7617350ae7ba70dec2ca8f\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] D:\.gradle\caches\transforms-3\64bee6bd8a7617350ae7ba70dec2ca8f\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] D:\.gradle\caches\transforms-3\3ed9bb97f4060b7936ad18436b95bdd6\transformed\jetified-appcompat-resources-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] D:\.gradle\caches\transforms-3\3ed9bb97f4060b7936ad18436b95bdd6\transformed\jetified-appcompat-resources-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] D:\.gradle\caches\transforms-3\edaa8a2c21e71fc1adc076f33fada5bd\transformed\drawerlayout-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] D:\.gradle\caches\transforms-3\edaa8a2c21e71fc1adc076f33fada5bd\transformed\drawerlayout-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] D:\.gradle\caches\transforms-3\aaa4a8da806f37b6685702fa97d3a210\transformed\jetified-viewpager2-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] D:\.gradle\caches\transforms-3\aaa4a8da806f37b6685702fa97d3a210\transformed\jetified-viewpager2-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.2.5] D:\.gradle\caches\transforms-3\13306929a4b9ed6856eef4cea55a5e7f\transformed\fragment-1.2.5\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.2.5] D:\.gradle\caches\transforms-3\13306929a4b9ed6856eef4cea55a5e7f\transformed\fragment-1.2.5\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] D:\.gradle\caches\transforms-3\012b63bdc03cbc670d27980c6c77c28f\transformed\coordinatorlayout-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] D:\.gradle\caches\transforms-3\012b63bdc03cbc670d27980c6c77c28f\transformed\coordinatorlayout-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] D:\.gradle\caches\transforms-3\42357f9d491c6f968b987909f04c9f43\transformed\dynamicanimation-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] D:\.gradle\caches\transforms-3\42357f9d491c6f968b987909f04c9f43\transformed\dynamicanimation-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.transition:transition:1.2.0] D:\.gradle\caches\transforms-3\f0c3f3e9d5674c0655acb9478c205a4b\transformed\transition-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.2.0] D:\.gradle\caches\transforms-3\f0c3f3e9d5674c0655acb9478c205a4b\transformed\transition-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] D:\.gradle\caches\transforms-3\d7856edfa443b6fe6b3206ef5e72b5d1\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] D:\.gradle\caches\transforms-3\d7856edfa443b6fe6b3206ef5e72b5d1\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] D:\.gradle\caches\transforms-3\65549fbb33dc5f479ec69c331e354af8\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] D:\.gradle\caches\transforms-3\65549fbb33dc5f479ec69c331e354af8\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] D:\.gradle\caches\transforms-3\7260d30e440b36296b205ec875f82cb4\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] D:\.gradle\caches\transforms-3\7260d30e440b36296b205ec875f82cb4\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] D:\.gradle\caches\transforms-3\9d6a9b815b8b84389603054e5ae705fd\transformed\recyclerview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] D:\.gradle\caches\transforms-3\9d6a9b815b8b84389603054e5ae705fd\transformed\recyclerview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] D:\.gradle\caches\transforms-3\22f75c90e47d0ec6dae37b263251b2dc\transformed\customview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] D:\.gradle\caches\transforms-3\22f75c90e47d0ec6dae37b263251b2dc\transformed\customview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] D:\.gradle\caches\transforms-3\87ccaefff0d1b40f67726465517dd870\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] D:\.gradle\caches\transforms-3\87ccaefff0d1b40f67726465517dd870\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] D:\.gradle\caches\transforms-3\09b91e520ca13343c5ca499f9a75f1db\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] D:\.gradle\caches\transforms-3\09b91e520ca13343c5ca499f9a75f1db\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.1.0] D:\.gradle\caches\transforms-3\a440b60b271914ef0aa5fdda8702714d\transformed\jetified-activity-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity:1.1.0] D:\.gradle\caches\transforms-3\a440b60b271914ef0aa5fdda8702714d\transformed\jetified-activity-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.5.0] D:\.gradle\caches\transforms-3\0b4282b9c7a0a5d3d545dd052b4671aa\transformed\core-1.5.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.5.0] D:\.gradle\caches\transforms-3\0b4282b9c7a0a5d3d545dd052b4671aa\transformed\core-1.5.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.cardview:cardview:1.0.0] D:\.gradle\caches\transforms-3\9b9b248a05b801dc52e230016fa0b6bd\transformed\cardview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] D:\.gradle\caches\transforms-3\9b9b248a05b801dc52e230016fa0b6bd\transformed\cardview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] D:\.gradle\caches\transforms-3\5a8f3ac820c91eda7b971ca16d8b8c2e\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] D:\.gradle\caches\transforms-3\5a8f3ac820c91eda7b971ca16d8b8c2e\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0] D:\.gradle\caches\transforms-3\5b54dac375e9746e103cbad969d8bd69\transformed\jetified-lifecycle-viewmodel-savedstate-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0] D:\.gradle\caches\transforms-3\5b54dac375e9746e103cbad969d8bd69\transformed\jetified-lifecycle-viewmodel-savedstate-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.2.0] D:\.gradle\caches\transforms-3\6e49b4a666f3cfab859ebbda885b9f7d\transformed\lifecycle-viewmodel-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.2.0] D:\.gradle\caches\transforms-3\6e49b4a666f3cfab859ebbda885b9f7d\transformed\lifecycle-viewmodel-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.interpolator:interpolator:1.0.0] D:\.gradle\caches\transforms-3\cc34e081db2a4f2014e09cf2c4e4e15e\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] D:\.gradle\caches\transforms-3\cc34e081db2a4f2014e09cf2c4e4e15e\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] D:\.gradle\caches\transforms-3\ed1c61da30410041dab37494e1c80ee4\transformed\lifecycle-runtime-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] D:\.gradle\caches\transforms-3\ed1c61da30410041dab37494e1c80ee4\transformed\lifecycle-runtime-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.savedstate:savedstate:1.0.0] D:\.gradle\caches\transforms-3\74051b0586490939329de0db8a5e03aa\transformed\jetified-savedstate-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.savedstate:savedstate:1.0.0] D:\.gradle\caches\transforms-3\74051b0586490939329de0db8a5e03aa\transformed\jetified-savedstate-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] D:\.gradle\caches\transforms-3\a6e62cd388144518a5020d9d3fb6399c\transformed\lifecycle-livedata-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] D:\.gradle\caches\transforms-3\a6e62cd388144518a5020d9d3fb6399c\transformed\lifecycle-livedata-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.2.0] D:\.gradle\caches\transforms-3\e21c986c5e2e4151315b3227f54b096f\transformed\lifecycle-livedata-core-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.2.0] D:\.gradle\caches\transforms-3\e21c986c5e2e4151315b3227f54b096f\transformed\lifecycle-livedata-core-2.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.1.0] D:\.gradle\caches\transforms-3\798325f21fba9d6f1890bb25ce759c0a\transformed\core-runtime-2.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.1.0] D:\.gradle\caches\transforms-3\798325f21fba9d6f1890bb25ce759c0a\transformed\core-runtime-2.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.documentfile:documentfile:1.0.0] D:\.gradle\caches\transforms-3\982f5b8d6aa88da775d0f8f7820af652\transformed\documentfile-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] D:\.gradle\caches\transforms-3\982f5b8d6aa88da775d0f8f7820af652\transformed\documentfile-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] D:\.gradle\caches\transforms-3\bfc7616f385cc5247c5db8ac2a1736a4\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] D:\.gradle\caches\transforms-3\bfc7616f385cc5247c5db8ac2a1736a4\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] D:\.gradle\caches\transforms-3\e999af1698990238ab571e40fdade514\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] D:\.gradle\caches\transforms-3\e999af1698990238ab571e40fdade514\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.0.0] D:\.gradle\caches\transforms-3\10221f4dafaffc3153931c3005102f68\transformed\jetified-annotation-experimental-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.annotation:annotation-experimental:1.0.0] D:\.gradle\caches\transforms-3\10221f4dafaffc3153931c3005102f68\transformed\jetified-annotation-experimental-1.0.0\AndroidManifest.xml:20:5-22:41
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+		ADDED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+		INJECTED from D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml

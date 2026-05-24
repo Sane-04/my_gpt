@@ -1,0 +1,198 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.iflytek.edgeAI"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="22"
+8-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+9        android:targetSdkVersion="32" />
+9-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml
+10
+11    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+11-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:5:5-81
+11-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:5:22-78
+12    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+12-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:6:5-80
+12-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:6:22-77
+13    <uses-permission android:name="android.permission.INTERNET" />
+13-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:7:5-67
+13-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:7:22-64
+14    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+14-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:8:5-82
+14-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:8:22-79
+15    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+15-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:9:5-71
+15-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:9:22-68
+16
+17    <application
+17-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:11:5-96:19
+18        android:allowBackup="true"
+18-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:12:9-35
+19        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+19-->[androidx.core:core:1.5.0] D:\.gradle\caches\transforms-3\0b4282b9c7a0a5d3d545dd052b4671aa\transformed\core-1.5.0\AndroidManifest.xml:24:18-86
+20        android:icon="@mipmap/ic_launcher"
+20-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:13:9-43
+21        android:label="@string/app_name"
+21-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:14:9-41
+22        android:requestLegacyExternalStorage="true"
+22-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:17:9-52
+23        android:roundIcon="@mipmap/ic_launcher_round"
+23-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:15:9-54
+24        android:supportsRtl="true"
+24-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:16:9-35
+25        android:theme="@style/Theme.ChatDemoProj" >
+25-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:18:9-50
+26        <activity
+26-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:19:9-27:20
+27            android:name="com.example.sparkchaindemo.MainActivity"
+27-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:20:13-67
+28            android:exported="true" >
+28-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:21:13-36
+29            <intent-filter>
+29-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:22:13-26:29
+30                <action android:name="android.intent.action.MAIN" />
+30-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:23:17-69
+30-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:23:25-66
+31
+32                <category android:name="android.intent.category.LAUNCHER" />
+32-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:25:17-77
+32-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:25:27-74
+33            </intent-filter>
+34        </activity>
+35        <activity
+35-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:28:9-30:39
+36            android:name="com.example.sparkchaindemo.llm.online_llm.chat.ChatActivity"
+36-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:29:13-61
+37            android:label="大模型通用对话" />
+37-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:30:13-36
+38        <activity
+38-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:31:9-33:36
+39            android:name="com.example.sparkchaindemo.llm.online_llm.tti.ttiDemoActivity"
+39-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:32:13-63
+40            android:label="图片生成" />
+40-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:33:13-33
+41        <activity
+41-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:34:9-36:36
+42            android:name="com.example.sparkchaindemo.llm.online_llm.image_understanding.ImageUnderstanding"
+42-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:35:13-82
+43            android:label="图片理解" />
+43-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:36:13-33
+44        <activity
+44-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:37:9-39:37
+45            android:name="com.example.sparkchaindemo.llm.online_llm.embedding.EmbeddingActivity"
+45-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:38:13-71
+46            android:label="文本向量化" />
+46-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:39:13-34
+47        <activity
+47-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:40:9-42:37
+48            android:name="com.example.sparkchaindemo.llm.online_llm.personatetts.PersonateTTSActivity"
+48-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:41:13-77
+49            android:label="超拟人合成" />
+49-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:42:13-34
+50        <activity
+50-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:43:9-45:40
+51            android:name="com.example.sparkchaindemo.llm.online_llm.bm.bmmDemoActivity"
+51-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:44:13-62
+52            android:label="多语种识别大模型" />
+52-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:45:13-37
+53        <activity
+53-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:46:9-48:39
+54            android:name="com.example.sparkchaindemo.llm.online_llm.bm.bmcDemoActivity"
+54-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:47:13-62
+55            android:label="中文识别大模型" />
+55-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:48:13-36
+56        <activity
+56-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:49:9-51:37
+57            android:name="com.example.sparkchaindemo.llm.online_llm.bm.bmModeChoiceActivity"
+57-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:50:13-67
+58            android:label="大模型识别" />
+58-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:51:13-34
+59        <activity
+59-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:52:9-54:44
+60            android:name="com.example.sparkchaindemo.llm.online_llm.function.ChatWithFuctionCallActivity"
+60-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:53:13-80
+61            android:label="FunctionCall" />
+61-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:54:13-41
+62        <activity
+62-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:55:9-57:41
+63            android:name="com.example.sparkchaindemo.llm.online_llm.rtasr.RTASRLLMActivity"
+63-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:56:13-66
+64            android:label="大模型实时语音转写" />
+64-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:57:13-38
+65        <activity
+65-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:58:9-60:41
+66            android:name="com.example.sparkchaindemo.llm.online_llm.raasr.RAASRLLMActivity"
+66-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:59:13-66
+67            android:label="大模型录音文件转写" />
+67-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:60:13-38
+68        <activity
+68-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:61:9-63:37
+69            android:name="com.example.sparkchaindemo.llm.online_llm.online_llm_mainActivity"
+69-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:62:13-67
+70            android:label="大模型能力" />
+70-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:63:13-34
+71        <activity
+71-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:64:9-66:36
+72            android:name="com.example.sparkchaindemo.ai.AIMainActivity"
+72-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:65:13-46
+73            android:label="语音能力" />
+73-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:66:13-33
+74        <activity
+74-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:67:9-69:38
+75            android:name="com.example.sparkchaindemo.ai.rtasr.RTASRActivity"
+75-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:68:13-51
+76            android:label="实时语音转写" />
+76-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:69:13-35
+77        <activity
+77-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:70:9-72:36
+78            android:name="com.example.sparkchaindemo.ai.itrans.ITSActivity"
+78-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:71:13-50
+79            android:label="在线翻译" />
+79-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:72:13-33
+80        <activity
+80-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:73:9-75:36
+81            android:name="com.example.sparkchaindemo.ai.tts.TTSActivity"
+81-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:74:13-47
+82            android:label="在线合成" />
+82-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:75:13-33
+83        <activity
+83-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:76:9-78:36
+84            android:name="com.example.sparkchaindemo.ai.asr.asrActivity"
+84-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:77:13-47
+85            android:label="语音听写" />
+85-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:78:13-33
+86        <activity
+86-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:79:9-81:38
+87            android:name="com.example.sparkchaindemo.ai.raasr.RAASRActivity"
+87-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:80:13-51
+88            android:label="录音文件转写" />
+88-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:81:13-35
+89        <activity
+89-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:82:9-84:36
+90            android:name="com.example.sparkchaindemo.ai.imageTrans.IMTSActivity"
+90-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:83:13-55
+91            android:label="图片翻译" />
+91-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:84:13-33
+92        <activity
+92-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:85:9-87:36
+93            android:name="com.example.sparkchaindemo.ai.ist.ISTActivity"
+93-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:86:13-47
+94            android:label="极速转写" />
+94-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:87:13-33
+95        <activity
+95-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:88:9-90:34
+96            android:name="com.example.sparkchaindemo.ai.feature.FeatureActivity"
+96-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:89:13-55
+97            android:label="声纹" />
+97-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:90:13-31
+98        <activity
+98-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:91:9-93:40
+99            android:name="com.example.sparkchaindemo.ai.vc.VCActivity"
+99-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:92:13-45
+100            android:label="声音复刻(VC)" />
+100-->D:\iflytek\aikit\demo\Sparkchain\Andorid\SparkChain_Android_SDK_2.0.1_rc3_260309\Sample\app\src\main\AndroidManifest.xml:93:13-37
+101    </application>
+102
+103</manifest>

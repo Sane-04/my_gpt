@@ -1,9 +1,11 @@
 ﻿<!-- 模块说明：前端 Vue 组件模块，封装页面可复用的 UI 与交互片段。 -->
 <script setup lang="ts">
-import { ImagePlus, Search, SendHorizontal, Square, X } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { ImagePlus, Keyboard, LoaderCircle, Mic, Search, SendHorizontal, Square, X } from 'lucide-vue-next'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import IconButton from '@/components/base/IconButton.vue'
+import { isVoiceInputAvailable, voiceInput } from '@/native/voiceInput'
 import type { ChatImageInput } from '@/types/chat'
+import type { PluginListenerHandle } from '@capacitor/core'
 
 const props = defineProps<{
   isStreaming: boolean
@@ -17,13 +19,46 @@ const emit = defineEmits<{
 const content = ref('')
 const enableWebSearch = ref(false)
 const imageInput = ref<HTMLInputElement | null>(null)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const images = ref<ChatImageInput[]>([])
 const imageError = ref('')
+const voiceMode = ref(false)
+const voiceStatus = ref<'idle' | 'recording' | 'recognizing'>('idle')
+const voiceError = ref('')
+const voicePreview = ref('')
+const voiceLevel = ref(0)
+const voiceElapsedSeconds = ref(0)
+const voiceListenerHandles = ref<PluginListenerHandle[]>([])
+let voiceTimerId: number | null = null
+const textareaMaxHeight = 160
 const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
 const maxImageCount = 5
 const maxImageSize = 10 * 1024 * 1024
 // 只有有输入或图片，且没有流式生成时才允许发送。
-const canSend = computed(() => (content.value.trim().length > 0 || images.value.length > 0) && !props.isStreaming)
+const isVoiceBusy = computed(() => voiceStatus.value === 'recording' || voiceStatus.value === 'recognizing')
+const canSend = computed(() => (content.value.trim().length > 0 || images.value.length > 0) && !props.isStreaming && !isVoiceBusy.value)
+const voiceButtonText = computed(() => {
+  if (voiceStatus.value === 'recognizing') {
+    return '正在识别'
+  }
+
+  if (voiceStatus.value === 'recording') {
+    return voiceElapsedSeconds.value > 0 ? `点击结束识别 ${voiceElapsedSeconds.value}s` : '点击结束识别'
+  }
+
+  return '点击开始说话'
+})
+const voiceStatusText = computed(() => {
+  if (voiceStatus.value === 'recognizing') {
+    return '正在识别'
+  }
+
+  if (voiceStatus.value === 'recording') {
+    return '正在聆听'
+  }
+
+  return ''
+})
 
 /** 函数作用：把图片文件读取为 Base64 data URL；输入参数：file 图片文件；输出参数：Promise<string>。 */
 function readImageAsDataUrl(file: File) {
@@ -103,11 +138,214 @@ function removeImage(index: number) {
   imageError.value = ''
 }
 
+/** 函数作用：把语音识别文本追加到输入框；输入参数：text 识别文本；输出参数：无返回值。 */
+function appendVoiceText(text: string) {
+  const nextText = text.trim()
+  if (!nextText) {
+    voiceError.value = '没听清，再试一次'
+    return
+  }
+
+  const currentContent = content.value
+  const joiner = currentContent && !/\s$/.test(currentContent) ? ' ' : ''
+  content.value = `${currentContent}${joiner}${nextText}`
+}
+
+/** 函数作用：启动语音录音计时；输入参数：无；输出参数：无返回值。 */
+function startVoiceTimer() {
+  const startedAt = Date.now()
+  voiceElapsedSeconds.value = 0
+  if (voiceTimerId !== null) {
+    window.clearInterval(voiceTimerId)
+  }
+
+  voiceTimerId = window.setInterval(() => {
+    voiceElapsedSeconds.value = Math.floor((Date.now() - startedAt) / 1000)
+  }, 250)
+}
+
+/** 函数作用：停止语音录音计时；输入参数：无；输出参数：无返回值。 */
+function stopVoiceTimer() {
+  if (voiceTimerId === null) {
+    return
+  }
+
+  window.clearInterval(voiceTimerId)
+  voiceTimerId = null
+}
+
+/** 函数作用：重置语音输入临时状态；输入参数：无；输出参数：无返回值。 */
+function resetVoiceState() {
+  stopVoiceTimer()
+  voiceStatus.value = 'idle'
+  voicePreview.value = ''
+  voiceLevel.value = 0
+  voiceElapsedSeconds.value = 0
+}
+
+/** 函数作用：根据输入内容自动调整文本框高度；输入参数：无；输出参数：无返回值。 */
+function resizeTextarea() {
+  const textarea = textareaRef.value
+  if (!textarea) {
+    return
+  }
+
+  textarea.style.height = 'auto'
+  const nextHeight = Math.min(textarea.scrollHeight, textareaMaxHeight)
+  textarea.style.height = `${nextHeight}px`
+  textarea.style.overflowY = textarea.scrollHeight > textareaMaxHeight ? 'auto' : 'hidden'
+}
+
+/** 函数作用：确保原生语音事件只注册一次；输入参数：无；输出参数：Promise<void>。 */
+async function ensureVoiceListeners() {
+  if (voiceListenerHandles.value.length > 0) {
+    return
+  }
+
+  const handles = await Promise.all([
+    voiceInput.addListener('partialResult', (event) => {
+      voicePreview.value = event.text
+    }),
+    voiceInput.addListener('finalResult', (event) => {
+      appendVoiceText(event.text)
+      voiceMode.value = false
+      voiceError.value = ''
+      resetVoiceState()
+      void nextTick(resizeTextarea)
+    }),
+    voiceInput.addListener('voiceError', (event) => {
+      voiceError.value = event.message || '识别失败，请稍后重试'
+      resetVoiceState()
+    }),
+    voiceInput.addListener('volumeChanged', (event) => {
+      voiceLevel.value = Math.max(0, Math.min(100, event.level || 0))
+    }),
+    voiceInput.addListener('stateChanged', (event) => {
+      if (event.state === 'idle') {
+        resetVoiceState()
+      }
+    }),
+  ])
+
+  voiceListenerHandles.value = handles
+}
+
+/** 函数作用：移除原生语音事件监听；输入参数：无；输出参数：Promise<void>。 */
+async function removeVoiceListeners() {
+  const handles = [...voiceListenerHandles.value]
+  voiceListenerHandles.value = []
+  await Promise.all(handles.map((handle) => handle.remove()))
+}
+
+/** 函数作用：进入或退出语音输入模式；输入参数：无；输出参数：Promise<void>。 */
+async function toggleVoiceMode() {
+  if (props.isStreaming || isVoiceBusy.value) {
+    return
+  }
+
+  voiceError.value = ''
+  if (!voiceMode.value && !isVoiceInputAvailable()) {
+    voiceError.value = '当前环境不支持语音输入'
+    return
+  }
+
+  voiceMode.value = !voiceMode.value
+  if (!voiceMode.value) {
+    await nextTick()
+    resizeTextarea()
+  }
+}
+
+/** 函数作用：请求麦克风权限；输入参数：无；输出参数：是否已授权。 */
+async function requestVoicePermission() {
+  const permissions = await voiceInput.requestPermissions()
+  return permissions.microphone === 'granted'
+}
+
+/** 函数作用：开始语音识别；输入参数：无；输出参数：Promise<void>。 */
+async function startVoiceRecording() {
+  if (props.isStreaming || voiceStatus.value !== 'idle') {
+    return
+  }
+
+  if (!isVoiceInputAvailable()) {
+    voiceError.value = '当前环境不支持语音输入'
+    return
+  }
+
+  voiceError.value = ''
+  voicePreview.value = ''
+
+  try {
+    const hasPermission = await requestVoicePermission()
+    if (!hasPermission) {
+      voiceError.value = '需要麦克风权限才能语音输入'
+      return
+    }
+
+    await ensureVoiceListeners()
+    await voiceInput.initialize()
+    await voiceInput.startListening({
+      language: 'zh_cn',
+      domain: 'iat',
+      accent: 'henanese',
+      vadEos: 8000,
+    })
+    voiceStatus.value = 'recording'
+    startVoiceTimer()
+  } catch (error) {
+    voiceError.value = error instanceof Error ? error.message : '无法启动语音输入'
+    resetVoiceState()
+  }
+}
+
+/** 函数作用：停止录音并等待识别结果；输入参数：无；输出参数：Promise<void>。 */
+async function stopVoiceRecording() {
+  if (voiceStatus.value !== 'recording') {
+    return
+  }
+
+  stopVoiceTimer()
+  voiceStatus.value = 'recognizing'
+  try {
+    await voiceInput.stopListening()
+  } catch (error) {
+    voiceError.value = error instanceof Error ? error.message : '识别失败，请稍后重试'
+    resetVoiceState()
+  }
+}
+
+/** 函数作用：取消本次语音输入；输入参数：无；输出参数：Promise<void>。 */
+async function cancelVoiceRecording() {
+  if (voiceStatus.value !== 'recording' && voiceStatus.value !== 'recognizing') {
+    return
+  }
+
+  try {
+    await voiceInput.cancelListening()
+  } catch {
+    // 取消失败不影响前端恢复可用状态。
+  }
+  resetVoiceState()
+}
+
+/** 函数作用：切换语音识别开始或结束；输入参数：无；输出参数：Promise<void>。 */
+async function toggleVoiceRecording() {
+  if (voiceStatus.value === 'idle') {
+    await startVoiceRecording()
+    return
+  }
+
+  if (voiceStatus.value === 'recording') {
+    await stopVoiceRecording()
+  }
+}
+
 /** 函数作用：提交当前输入内容；输入参数：无；输出参数：无返回值。 */
 function handleSubmit() {
   const nextContent = content.value.trim()
 
-  if ((!nextContent && images.value.length === 0) || props.isStreaming) {
+  if ((!nextContent && images.value.length === 0) || props.isStreaming || isVoiceBusy.value) {
     return
   }
 
@@ -115,6 +353,12 @@ function handleSubmit() {
   content.value = ''
   images.value = []
   imageError.value = ''
+  void nextTick(resizeTextarea)
+}
+
+/** 函数作用：处理文本输入并自适应高度；输入参数：无；输出参数：无返回值。 */
+function handleTextInput() {
+  resizeTextarea()
 }
 
 /** 函数作用：处理 Enter 发送、Shift+Enter 换行；输入参数：event 键盘事件；输出参数：无返回值。 */
@@ -126,6 +370,14 @@ function handleKeydown(event: KeyboardEvent) {
   event.preventDefault()
   handleSubmit()
 }
+
+onBeforeUnmount(() => {
+  if (isVoiceBusy.value) {
+    void voiceInput.cancelListening()
+  }
+  void removeVoiceListeners()
+  stopVoiceTimer()
+})
 </script>
 
 <template>
@@ -147,7 +399,24 @@ function handleKeydown(event: KeyboardEvent) {
         </button>
       </div>
     </div>
-    <div v-if="imageError" class="mb-2 text-xs text-red-600">{{ imageError }}</div>
+    <div v-if="imageError || voiceError" class="mb-2 text-xs text-red-600">{{ imageError || voiceError }}</div>
+    <div
+      v-if="voiceMode && isVoiceBusy"
+      class="mb-2 flex items-center gap-2 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+    >
+      <span
+        class="inline-flex size-2.5 shrink-0 rounded-full"
+        :class="voiceStatus === 'recording' ? 'bg-sky-500' : 'bg-zinc-400'"
+      />
+      <span class="w-16 shrink-0">{{ voiceStatusText }}</span>
+      <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+        <div
+          class="h-full rounded-full bg-sky-500 transition-[width]"
+          :style="{ width: voiceStatus === 'recording' ? `${Math.max(8, voiceLevel)}%` : '100%' }"
+        />
+      </div>
+      <span class="w-8 shrink-0 text-right">{{ voiceStatus === 'recording' ? `${voiceElapsedSeconds}s` : '' }}</span>
+    </div>
     <div class="flex items-center gap-2">
       <input
         ref="imageInput"
@@ -158,12 +427,36 @@ function handleKeydown(event: KeyboardEvent) {
         :disabled="isStreaming"
         @change="handleImageChange"
       />
+      <button
+        v-if="voiceMode"
+        type="button"
+        class="relative min-h-10 flex-1 select-none overflow-hidden rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 outline-none transition dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+        :class="{
+          'border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100': voiceStatus === 'recording',
+          'opacity-70': voiceStatus === 'recognizing',
+        }"
+        :disabled="isStreaming || voiceStatus === 'recognizing'"
+        @click="toggleVoiceRecording"
+      >
+        <span
+          class="absolute inset-y-0 left-0 bg-sky-200/60 transition-[width] dark:bg-sky-900/60"
+          :style="{ width: voiceStatus === 'recording' ? `${Math.max(12, voiceLevel)}%` : '0%' }"
+        />
+        <span class="relative inline-flex items-center gap-2">
+          <LoaderCircle v-if="voiceStatus === 'recognizing'" class="size-4 animate-spin" />
+          <Mic v-else class="size-4" />
+          {{ voicePreview || voiceButtonText }}
+        </span>
+      </button>
       <textarea
+        v-else
+        ref="textareaRef"
         v-model="content"
         rows="1"
         placeholder="勇敢牛牛！"
-        class="max-h-40 min-h-10 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-2.5 text-sm leading-5 text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-zinc-50 dark:placeholder:text-zinc-500"
+        class="min-h-10 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-2.5 text-sm leading-5 text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-zinc-50 dark:placeholder:text-zinc-500"
         :disabled="isStreaming"
+        @input="handleTextInput"
         @keydown="handleKeydown"
         @paste="handlePaste"
       />
@@ -172,15 +465,24 @@ function handleKeydown(event: KeyboardEvent) {
         <Square class="size-5 fill-current" />
       </IconButton>
       <template v-else>
-        <IconButton label="上传图片" @click="openImagePicker">
-          <ImagePlus class="size-5" />
+        <template v-if="!voiceMode">
+          <IconButton label="上传图片" @click="openImagePicker">
+            <ImagePlus class="size-5" />
+          </IconButton>
+          <IconButton
+            label="联网搜索"
+            :class="{ 'bg-sky-100 text-sky-700 hover:bg-sky-200 hover:text-sky-800': enableWebSearch }"
+            @click="enableWebSearch = !enableWebSearch"
+          >
+            <Search class="size-5" />
+          </IconButton>
+        </template>
+        <IconButton :label="voiceMode ? '键盘输入' : '语音输入'" :disabled="isVoiceBusy" @click="toggleVoiceMode">
+          <Keyboard v-if="voiceMode" class="size-5" />
+          <Mic v-else class="size-5" />
         </IconButton>
-        <IconButton
-          label="联网搜索"
-          :class="{ 'bg-sky-100 text-sky-700 hover:bg-sky-200 hover:text-sky-800': enableWebSearch }"
-          @click="enableWebSearch = !enableWebSearch"
-        >
-          <Search class="size-5" />
+        <IconButton v-if="voiceMode && isVoiceBusy" label="取消语音" @click="cancelVoiceRecording">
+          <X class="size-5" />
         </IconButton>
         <IconButton label="发送消息" type="submit" :class="{ 'opacity-40': !canSend }">
           <SendHorizontal class="size-5" />
