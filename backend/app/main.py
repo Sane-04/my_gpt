@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth_router, chat_router, conversations_router, memories_router
+from app.api import auth_router, chat_router, conversations_router, grok_search_router, memories_router
 from app.core.config import get_settings
 from app.core.errors import AppError, app_error_handler
 
@@ -19,6 +19,7 @@ app.add_exception_handler(AppError, app_error_handler)
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(conversations_router)
+app.include_router(grok_search_router)
 app.include_router(memories_router)
 
 

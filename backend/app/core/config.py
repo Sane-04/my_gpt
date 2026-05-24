@@ -42,6 +42,12 @@ class Settings(BaseSettings):
     # 联网搜索配置：使用 SerpApi Google Search API 获取通用网页搜索结果。
     serpapi_api_key: str = Field(default="", alias="SERPAPI_API_KEY")
     serpapi_timeout_seconds: float = Field(default=15.0, alias="SERPAPI_TIMEOUT_SECONDS")
+    # Grok 搜索配置：独立于主聊天模型，用于单独的 Grok 搜索页面。
+    grok_api_key: str = Field(default="", alias="GROK_API_KEY")
+    grok_base_url: str = Field(default="https://api.x.ai/v1", alias="GROK_BASE_URL")
+    grok_search_model: str = Field(default="grok-4.3", alias="GROK_SEARCH_MODEL")
+    grok_search_timeout_seconds: float = Field(default=60.0, alias="GROK_SEARCH_TIMEOUT_SECONDS")
+    grok_search_max_results: int = Field(default=5, alias="GROK_SEARCH_MAX_RESULTS")
     # 模型请求超时：流式读取超时用于避免上游网关挂起时聊天一直处于生成中。
     model_http_timeout_seconds: float = Field(default=60.0, alias="MODEL_HTTP_TIMEOUT_SECONDS")
     model_stream_timeout_seconds: float = Field(default=180.0, alias="MODEL_STREAM_TIMEOUT_SECONDS")

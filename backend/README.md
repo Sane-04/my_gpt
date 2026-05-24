@@ -123,6 +123,11 @@ Copy-Item backend/.env.example backend/.env
 | `EMBEDDING_MODEL` | Embedding 模型 |
 | `SERPAPI_API_KEY` | SerpApi API Key，用于联网搜索 |
 | `SERPAPI_TIMEOUT_SECONDS` | SerpApi 请求超时，默认 15 秒 |
+| `GROK_API_KEY` | Grok 搜索 API Key，独立于聊天模型配置 |
+| `GROK_BASE_URL` | Grok 搜索 API 地址，默认 `https://api.x.ai/v1` |
+| `GROK_SEARCH_MODEL` | Grok 搜索模型，默认 `grok-4.3` |
+| `GROK_SEARCH_TIMEOUT_SECONDS` | Grok 搜索请求超时，默认 60 秒 |
+| `GROK_SEARCH_MAX_RESULTS` | Grok 搜索来源数量上限，默认 5 |
 | `MODEL_HTTP_TIMEOUT_SECONDS` | 非流式模型请求超时，默认 60 秒 |
 | `MODEL_STREAM_TIMEOUT_SECONDS` | 流式模型无数据读取超时，默认 180 秒 |
 | `CONTEXT_WINDOW_SIZE` | 最近上下文消息数，默认 5 |
@@ -154,6 +159,18 @@ Copy-Item backend/.env.example backend/.env
 | 工具审计 | 每次工具调用会写入 `tool_call_events`，记录参数、结果、状态和错误 |
 
 注意：如果模型回复“需要调用 save_long_term_memory”但没有实际保存，请先检查 `tool_call_events` 审计记录和模型服务的工具调用兼容性。部分第三方 OpenAI-compatible 服务可能只实现文本流，未完整兼容 `chat_completions` 或 `responses` 的工具调用字段。
+
+## Grok 搜索
+
+`POST /api/grok-search` 提供独立 Grok 搜索能力，使用 `GROK_API_KEY`、`GROK_BASE_URL` 和 `GROK_SEARCH_MODEL`，不会进入普通聊天链路，也不会读取会话上下文或长期记忆。
+
+| 字段 | 说明 |
+| --- | --- |
+| `query` | 搜索问题，不能为空 |
+| `mode` | `web`、`x` 或 `auto`，默认 `web` |
+| `answer` | Grok 返回的搜索回答 |
+| `sources` | 搜索来源列表 |
+| `model` | 实际使用的 Grok 模型 |
 
 ## 目录结构
 

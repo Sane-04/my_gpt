@@ -2,6 +2,7 @@
 from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
 from app.api.conversations import router as conversations_router
+from app.api.grok_search import router as grok_search_router
 from app.api.memories import router as memories_router
 
-__all__ = ["auth_router", "chat_router", "conversations_router", "memories_router"]
+__all__ = ["auth_router", "chat_router", "conversations_router", "grok_search_router", "memories_router"]

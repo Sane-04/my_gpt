@@ -7,6 +7,7 @@ import {
   Menu,
   MessageSquarePlus,
   PanelLeftClose,
+  Search,
   Trash2,
   UserCircle,
 } from 'lucide-vue-next'
@@ -32,6 +33,10 @@ let syncSidebarByViewport: (() => void) | null = null
 
 // 根据当前路由显示顶部状态区标题，保持页面切换时上下文明确。
 const currentSection = computed(() => {
+  if (route.name === 'grok-search') {
+    return 'Grok 搜索'
+  }
+
   if (route.name === 'memories') {
     return '长期记忆'
   }
@@ -175,8 +180,17 @@ async function handleLogout() {
       <!-- 用户状态区：展示当前登录用户并提供退出入口。 -->
       <div class="border-t border-zinc-200 p-3 dark:border-zinc-800">
         <RouterLink
+          to="/grok-search"
+          class="flex h-10 items-center gap-2 rounded-md px-3 text-sm transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          :class="route.name === 'grok-search' ? 'bg-zinc-100 font-medium text-zinc-950 dark:bg-zinc-800 dark:text-zinc-50' : 'text-zinc-700'"
+        >
+          <Search class="size-4" />
+          Grok 搜索
+        </RouterLink>
+        <RouterLink
           to="/memories"
-          class="flex h-10 items-center gap-2 rounded-md px-3 text-sm text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          class="flex h-10 items-center gap-2 rounded-md px-3 text-sm transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          :class="route.name === 'memories' ? 'bg-zinc-100 font-medium text-zinc-950 dark:bg-zinc-800 dark:text-zinc-50' : 'text-zinc-700'"
         >
           <Brain class="size-4" />
           长期记忆
