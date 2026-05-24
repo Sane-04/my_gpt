@@ -121,6 +121,7 @@ Copy-Item backend/.env.example backend/.env
 | `EMBEDDING_API_KEY` | Embedding 服务 API Key；不回退到 `OPENAI_API_KEY` |
 | `EMBEDDING_BASE_URL` | Embedding 兼容服务 base URL；不回退到 `OPENAI_BASE_URL` |
 | `EMBEDDING_MODEL` | Embedding 模型 |
+| `WEB_SEARCH_PROVIDER` | 聊天联网搜索提供商，可选 `serpapi` 或 `grok` |
 | `SERPAPI_API_KEY` | SerpApi API Key，用于联网搜索 |
 | `SERPAPI_TIMEOUT_SECONDS` | SerpApi 请求超时，默认 15 秒 |
 | `GROK_API_KEY` | Grok 搜索 API Key，独立于聊天模型配置 |
@@ -160,17 +161,14 @@ Copy-Item backend/.env.example backend/.env
 
 注意：如果模型回复“需要调用 save_long_term_memory”但没有实际保存，请先检查 `tool_call_events` 审计记录和模型服务的工具调用兼容性。部分第三方 OpenAI-compatible 服务可能只实现文本流，未完整兼容 `chat_completions` 或 `responses` 的工具调用字段。
 
-## Grok 搜索
+## 聊天联网搜索 Provider
 
-`POST /api/grok-search` 提供独立 Grok 搜索能力，使用 `GROK_API_KEY`、`GROK_BASE_URL` 和 `GROK_SEARCH_MODEL`，不会进入普通聊天链路，也不会读取会话上下文或长期记忆。
+聊天工具 `web_search` 会按 `WEB_SEARCH_PROVIDER` 选择搜索来源。`serpapi` 使用现有 SerpApi Google Search；`grok` 使用 `GROK_API_KEY`、`GROK_BASE_URL` 和 `GROK_SEARCH_MODEL` 调用 Grok 搜索。前端仍使用聊天输入框里的“联网搜索”开关，不提供单独搜索页。
 
-| 字段 | 说明 |
+| Provider | 必需配置 | 说明 |
 | --- | --- |
-| `query` | 搜索问题，不能为空 |
-| `mode` | `web`、`x` 或 `auto`，默认 `web` |
-| `answer` | Grok 返回的搜索回答 |
-| `sources` | 搜索来源列表 |
-| `model` | 实际使用的 Grok 模型 |
+| `serpapi` | `SERPAPI_API_KEY` | 保留原有 SerpApi 搜索路径 |
+| `grok` | `GROK_API_KEY`、`GROK_BASE_URL`、`GROK_SEARCH_MODEL` | 使用 Grok 搜索作为聊天联网搜索来源 |
 
 ## 目录结构
 

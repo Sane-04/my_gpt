@@ -106,6 +106,124 @@ def test_grok_search_client_sends_web_search_request(monkeypatch):
     assert kwargs["headers"]["Authorization"] == "Bearer grok-key"
     assert kwargs["json"]["tools"][0]["type"] == "web_search"
     assert kwargs["json"]["tools"][0]["search_parameters"]["max_search_results"] == 3
+    assert "只返回严格 JSON" in kwargs["json"]["messages"][0]["content"]
+
+
+def test_grok_search_client_parses_structured_json_content(monkeypatch):
+    """函数作用：验证 Grok 结构化 JSON content 能解析出来源标题。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值。
+    """
+    install_fake_http(
+        monkeypatch,
+        [
+            FakeHttpResponse(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": (
+                                    '{"answer":"OpenAI 发布了新闻。[[cite:src_1]]",'
+                                    '"sources":[{"id":"src_1","title":"OpenAI News","url":"https://openai.com/news/","domain":"openai.com","snippet":"官方新闻页"}]}'
+                                )
+                            }
+                        }
+                    ]
+                }
+            )
+        ],
+    )
+    client = GrokSearchClient(api_key="grok-key", base_url="https://api.x.ai/v1", model="grok-4.3")
+
+    async def _helper_search():
+        return await client.search("OpenAI 新闻", "web")
+
+    result = asyncio.run(_helper_search())
+
+    assert result["answer"] == "OpenAI 发布了新闻。[[cite:src_1]]"
+    assert result["sources"] == [
+        {
+            "id": "src_1",
+            "title": "OpenAI News",
+            "url": "https://openai.com/news/",
+            "domain": "openai.com",
+            "snippet": "官方新闻页",
+        }
+    ]
+
+
+def test_grok_search_client_parses_fenced_json_content(monkeypatch):
+    """函数作用：验证 fenced JSON content 能被解析。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值。
+    """
+    install_fake_http(
+        monkeypatch,
+        [
+            FakeHttpResponse(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": (
+                                    "```json\n"
+                                    '{"answer":"带代码块的回答。[[cite:src_1]]","sources":[{"title":"Example","url":"https://example.com/a","snippet":"摘要"}]}'
+                                    "\n```"
+                                )
+                            }
+                        }
+                    ]
+                }
+            )
+        ],
+    )
+    client = GrokSearchClient(api_key="grok-key", base_url="https://api.x.ai/v1", model="grok-4.3")
+
+    async def _helper_search():
+        return await client.search("测试", "web")
+
+    result = asyncio.run(_helper_search())
+
+    assert result["answer"] == "带代码块的回答。[[cite:src_1]]"
+    assert result["sources"][0]["id"] == "src_1"
+    assert result["sources"][0]["title"] == "Example"
+    assert result["sources"][0]["domain"] == "example.com"
+
+
+def test_grok_search_client_structured_source_fallbacks(monkeypatch):
+    """函数作用：验证结构化来源缺 title/domain 时使用 URL 兜底。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值。
+    """
+    install_fake_http(
+        monkeypatch,
+        [
+            FakeHttpResponse(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": (
+                                    '{"answer":"兜底来源。[[cite:src_1]]",'
+                                    '"sources":[{"url":"https://www.example.com/path/to/article"}]}'
+                                )
+                            }
+                        }
+                    ]
+                }
+            )
+        ],
+    )
+    client = GrokSearchClient(api_key="grok-key", base_url="https://api.x.ai/v1", model="grok-4.3")
+
+    async def _helper_search():
+        return await client.search("测试", "web")
+
+    result = asyncio.run(_helper_search())
+
+    assert result["sources"][0]["id"] == "src_1"
+    assert result["sources"][0]["domain"] == "example.com"
+    assert result["sources"][0]["title"] == "example.com/path/to/article"
 
 
 def test_grok_search_client_sends_x_search_request(monkeypatch):

@@ -605,6 +605,136 @@ def test_execute_web_search_tool(monkeypatch):
     assert "[[cite:src_1]]" in result["instruction"]
 
 
+def test_execute_web_search_tool_uses_grok_provider(monkeypatch):
+    """函数作用：验证 web_search 可按配置使用 Grok 搜索 provider。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值，断言失败时由 pytest 报错。
+    """
+    calls = []
+
+    class FakeGrokSearchClient:
+        """类作用：模拟 Grok 搜索客户端。"""
+
+        def __init__(self, max_results=None):
+            """函数作用：记录来源数量上限。
+            输入参数：max_results - 搜索结果数量上限。
+            输出参数：无返回值。
+            """
+            self.max_results = max_results
+
+        async def search(self, query, mode):
+            """函数作用：返回 Grok 风格标准化搜索结果。
+            输入参数：query - 搜索词；mode - 搜索模式。
+            输出参数：搜索结果字典。
+            """
+            calls.append({"query": query, "mode": mode, "max_results": self.max_results})
+            return {
+                "answer": "Grok 搜索摘要",
+                "model": "grok-4.3",
+                "sources": [
+                    {
+                        "title": "Grok News",
+                        "url": "https://example.com/grok-news",
+                        "domain": "example.com",
+                        "snippet": "Grok 来源摘要",
+                    }
+                ],
+            }
+
+    monkeypatch.setattr(chat_tools, "GrokSearchClient", FakeGrokSearchClient)
+    monkeypatch.setattr(
+        chat_tools,
+        "get_settings",
+        lambda: SimpleNamespace(web_search_provider="grok", grok_search_model="grok-4.3"),
+    )
+
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="web_search",
+            arguments={"query": "OpenAI 最新模型", "limit": 3},
+        )
+    )
+
+    assert calls == [{"query": "OpenAI 最新模型", "mode": "web", "max_results": 3}]
+    assert result["answer"] == "Grok 搜索摘要"
+    assert result["model"] == "grok-4.3"
+    assert result["results"] == [
+        {
+            "id": "src_1",
+            "title": "Grok News",
+            "url": "https://example.com/grok-news",
+            "domain": "example.com",
+            "snippet": "Grok 来源摘要",
+            "source": "grok",
+        }
+    ]
+    assert "[[cite:src_1]]" in result["instruction"]
+
+
+def test_execute_web_search_tool_rejects_invalid_provider(monkeypatch):
+    """函数作用：验证非法搜索 provider 返回清晰错误。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值。
+    """
+    monkeypatch.setattr(
+        chat_tools,
+        "get_settings",
+        lambda: SimpleNamespace(web_search_provider="unknown"),
+    )
+
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="web_search",
+            arguments={"query": "OpenAI 最新模型", "limit": 3},
+        )
+    )
+
+    assert result == {"error": "WEB_SEARCH_PROVIDER 只能是 serpapi 或 grok"}
+
+
+def test_execute_web_search_tool_returns_grok_config_error(monkeypatch):
+    """函数作用：验证 Grok 配置缺失时 web_search 返回工具错误。
+    输入参数：monkeypatch - pytest monkeypatch fixture。
+    输出参数：无返回值。
+    """
+    class FakeGrokSearchClient:
+        """类作用：模拟配置缺失的 Grok 搜索客户端。"""
+
+        def __init__(self, max_results=None):
+            self.max_results = max_results
+
+        async def search(self, _query, _mode):
+            raise chat_tools.GrokSearchConfigError("GROK_API_KEY 未配置")
+
+    monkeypatch.setattr(chat_tools, "GrokSearchClient", FakeGrokSearchClient)
+    monkeypatch.setattr(
+        chat_tools,
+        "get_settings",
+        lambda: SimpleNamespace(web_search_provider="grok"),
+    )
+
+    result = asyncio.run(
+        chat_tools.execute_chat_tool(
+            session=FakeSession(),
+            model_client=FakeModelClient(),
+            user_id=uuid.uuid4(),
+            conversation_id=uuid.uuid4(),
+            tool_name="web_search",
+            arguments={"query": "OpenAI 最新模型", "limit": 3},
+        )
+    )
+
+    assert result == {"error": "GROK_API_KEY 未配置"}
+
+
 def test_execute_web_search_tool_requires_serpapi_key(monkeypatch):
     """函数作用：验证未配置 SerpApi API Key 时返回清晰错误。
     输入参数：monkeypatch - pytest monkeypatch fixture。

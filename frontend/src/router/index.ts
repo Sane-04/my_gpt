@@ -2,7 +2,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppShell from '@/layouts/AppShell.vue'
 import ChatPage from '@/pages/ChatPage.vue'
-import GrokSearchPage from '@/pages/GrokSearchPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import MemoriesPage from '@/pages/MemoriesPage.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -38,15 +37,6 @@ const router = createRouter({
           name: 'memories',
           component: MemoriesPage,
           // 长期记忆按用户隔离，未登录时不允许进入。
-          meta: {
-            requiresAuth: true,
-          },
-        },
-        {
-          path: 'grok-search',
-          name: 'grok-search',
-          component: GrokSearchPage,
-          // Grok 搜索使用独立后端配置，但仍按当前用户登录态访问。
           meta: {
             requiresAuth: true,
           },

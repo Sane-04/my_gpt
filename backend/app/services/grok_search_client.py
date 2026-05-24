@@ -1,9 +1,12 @@
-# 模块说明：后端 Grok 搜索客户端，封装独立 xAI/Grok 搜索模型调用。
+# 模块说明：后端 Grok 搜索客户端，封装聊天联网搜索工具使用的 xAI/Grok 调用。
+import json
+import re
 from urllib.parse import urlparse
 
 import httpx
 
 from app.core.config import get_settings
+from app.prompts.grok_search import build_grok_search_system_prompt
 
 
 class GrokSearchConfigError(Exception):
@@ -104,6 +107,94 @@ class GrokSearchClient:
             "snippet": snippet or None,
         }
 
+    def _extract_json_object_text(self, content: str) -> str | None:
+        """函数作用：从 Grok 文本中提取 JSON 对象文本。
+        输入参数：content - Grok 返回的原始文本。
+        输出参数：JSON 对象字符串；找不到时返回 None。
+        """
+        stripped_content = content.strip()
+        if not stripped_content:
+            return None
+
+        if stripped_content.startswith("{") and stripped_content.endswith("}"):
+            return stripped_content
+
+        fenced_match = re.search(r"```(?:json)?\s*(\{[\s\S]*?\})\s*```", stripped_content, re.IGNORECASE)
+        if fenced_match:
+            return fenced_match.group(1).strip()
+
+        start_index = stripped_content.find("{")
+        end_index = stripped_content.rfind("}")
+        if start_index != -1 and end_index > start_index:
+            return stripped_content[start_index : end_index + 1]
+
+        return None
+
+    def _normalize_structured_source(self, raw_source: dict, index: int) -> dict | None:
+        """函数作用：标准化 Grok 结构化 JSON 中的来源。
+        输入参数：raw_source - 来源对象；index - 来源序号。
+        输出参数：标准来源字典；缺 URL 时返回 None。
+        """
+        url = str(raw_source.get("url") or raw_source.get("link") or "").strip()
+        if not url:
+            return None
+
+        domain = str(raw_source.get("domain") or "").strip()
+        if not domain:
+            domain = urlparse(url).netloc.removeprefix("www.") or url
+
+        title = str(raw_source.get("title") or "").strip()
+        if not title:
+            parsed_path = urlparse(url).path.strip("/")
+            title = f"{domain}/{parsed_path}" if parsed_path else domain
+
+        return {
+            "id": str(raw_source.get("id") or f"src_{index}").strip() or f"src_{index}",
+            "title": title,
+            "url": url,
+            "domain": domain,
+            "snippet": str(raw_source.get("snippet") or "").strip(),
+        }
+
+    def _parse_structured_content(self, content: str) -> dict | None:
+        """函数作用：解析 Grok 按约定返回的结构化 JSON 内容。
+        输入参数：content - Grok message content。
+        输出参数：包含 answer 和 sources 的字典；解析失败返回 None。
+        """
+        json_text = self._extract_json_object_text(content)
+        if not json_text:
+            return None
+
+        try:
+            payload = json.loads(json_text)
+        except json.JSONDecodeError:
+            return None
+
+        if not isinstance(payload, dict):
+            return None
+
+        answer = str(payload.get("answer") or "").strip()
+        if not answer:
+            return None
+
+        sources = []
+        seen_urls = set()
+        for index, raw_source in enumerate(payload.get("sources") or [], start=1):
+            if not isinstance(raw_source, dict):
+                continue
+
+            source = self._normalize_structured_source(raw_source, index)
+            if not source or source["url"] in seen_urls:
+                continue
+
+            seen_urls.add(source["url"])
+            sources.append(source)
+
+        return {
+            "answer": answer,
+            "sources": sources[: max(int(self.max_results), 1)],
+        }
+
     def _extract_sources(self, response_payload: dict) -> list[dict]:
         """函数作用：从 Grok 响应中尽量提取搜索来源。
         输入参数：response_payload - Grok API JSON 响应。
@@ -176,7 +267,7 @@ class GrokSearchClient:
             "messages": [
                 {
                     "role": "system",
-                    "content": "你是一个独立的 Grok 搜索助手。请基于搜索结果直接回答，并尽量给出可核验的信息。",
+                    "content": build_grok_search_system_prompt(),
                 },
                 {"role": "user", "content": query},
             ],
@@ -205,6 +296,14 @@ class GrokSearchClient:
         answer = self._extract_answer(response_payload)
         if not answer:
             raise GrokSearchRequestError("Grok 搜索响应缺少回答内容")
+
+        structured_result = self._parse_structured_content(answer)
+        if structured_result:
+            return {
+                "answer": structured_result["answer"],
+                "sources": structured_result["sources"],
+                "model": self.model,
+            }
 
         return {
             "answer": answer,

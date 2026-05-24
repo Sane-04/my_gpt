@@ -13,8 +13,7 @@ My GPT 是一个面向个人使用的 AI 聊天应用，提供接近 ChatGPT 的
 | 流式聊天 | 后端通过 fetch stream 返回模型增量内容 |
 | Markdown 回复 | 助手消息支持 Markdown、代码块、复制按钮和引用胶囊 |
 | 图片输入 | 支持 png、jpeg、webp、gif 图片作为聊天输入 |
-| 联网搜索 | 可通过 SerpApi 搜索网页，并在回答中显示来源引用 |
-| Grok 搜索 | 提供独立 Grok 搜索页面，使用单独的 xAI/Grok 配置执行网页或 X 搜索 |
+| 联网搜索 | 可通过 `WEB_SEARCH_PROVIDER` 选择 SerpApi 或 Grok 搜索，并在回答中显示来源引用 |
 | 模型可配置 | 支持自定义模型名称、API Key、base_url 和独立 Embedding 服务 |
 | 当前会话检索 | 支持搜索上下文窗口外的当前会话历史消息 |
 | 长期记忆 | 支持新增、编辑、删除长期记忆，并同步 Markdown 副本 |
@@ -85,9 +84,10 @@ my_gpt/
 | `JWT_SECRET` | JWT 签名密钥，生产必须使用强随机字符串 |
 | `OPENAI_API_KEY` / `OPENAI_BASE_URL` | 对话模型服务配置 |
 | `EMBEDDING_API_KEY` / `EMBEDDING_BASE_URL` | Embedding 服务配置 |
+| `WEB_SEARCH_PROVIDER` | 聊天联网搜索提供商，可选 `serpapi` 或 `grok` |
 | `SERPAPI_API_KEY` | 联网搜索配置 |
 | `SERPAPI_TIMEOUT_SECONDS` | 联网搜索请求超时，默认 15 秒 |
-| `GROK_API_KEY` / `GROK_BASE_URL` | 独立 Grok 搜索服务配置 |
+| `GROK_API_KEY` / `GROK_BASE_URL` | Grok 搜索 provider 配置 |
 | `GROK_SEARCH_MODEL` | Grok 搜索模型，默认 `grok-4.3` |
 | `GROK_SEARCH_TIMEOUT_SECONDS` | Grok 搜索请求超时，默认 60 秒 |
 | `GROK_SEARCH_MAX_RESULTS` | Grok 搜索来源数量上限，默认 5 |

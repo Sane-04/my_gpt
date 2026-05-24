@@ -40,9 +40,10 @@ class Settings(BaseSettings):
     embedding_base_url: str = Field(default="", alias="EMBEDDING_BASE_URL")
     embedding_model: str = Field(default="text-embedding-3-small", alias="EMBEDDING_MODEL")
     # 联网搜索配置：使用 SerpApi Google Search API 获取通用网页搜索结果。
+    web_search_provider: str = Field(default="serpapi", alias="WEB_SEARCH_PROVIDER")
     serpapi_api_key: str = Field(default="", alias="SERPAPI_API_KEY")
     serpapi_timeout_seconds: float = Field(default=15.0, alias="SERPAPI_TIMEOUT_SECONDS")
-    # Grok 搜索配置：独立于主聊天模型，用于单独的 Grok 搜索页面。
+    # Grok 搜索配置：独立于主聊天模型，用作聊天联网搜索 provider。
     grok_api_key: str = Field(default="", alias="GROK_API_KEY")
     grok_base_url: str = Field(default="https://api.x.ai/v1", alias="GROK_BASE_URL")
     grok_search_model: str = Field(default="grok-4.3", alias="GROK_SEARCH_MODEL")

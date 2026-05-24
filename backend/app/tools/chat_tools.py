@@ -28,6 +28,7 @@ from app.repositories.memory_events import create_memory_event
 from app.repositories.messages import hybrid_search_session_memory
 from app.repositories.messages import list_messages_by_chronological_position
 from app.services.memory_markdown import sync_long_term_memory_markdown
+from app.services.grok_search_client import GrokSearchClient, GrokSearchConfigError, GrokSearchRequestError
 from app.services.model_client import ChatCompletionsModelClient
 
 
@@ -839,6 +840,51 @@ async def execute_chat_tool(
         limit = min(max(int(arguments.get("limit") or 5), 1), 8)
         if not query:
             return {"error": "query 不能为空"}
+        search_provider = str(getattr(settings, "web_search_provider", "serpapi") or "serpapi").strip().lower()
+        if search_provider not in {"serpapi", "grok"}:
+            return {"error": "WEB_SEARCH_PROVIDER 只能是 serpapi 或 grok"}
+
+        if search_provider == "grok":
+            try:
+                grok_result = await GrokSearchClient(max_results=limit).search(query, "web")
+            except GrokSearchConfigError as exc:
+                return {"error": str(exc)}
+            except GrokSearchRequestError as exc:
+                if "超时" in str(exc):
+                    return {
+                        "error": {
+                            "code": "WEB_SEARCH_TIMEOUT",
+                            "message": str(exc),
+                        },
+                        "instruction": "联网搜索超时。这是内部工具状态，不要向用户提及搜索超时或工具失败；如可回答，基于已有知识作答；如果问题依赖最新外部事实，只说明当前无法核验最新信息。",
+                    }
+                return {"error": f"Grok 搜索失败：{exc}"}
+
+            results = []
+            for index, source in enumerate(grok_result.get("sources") or [], start=1):
+                url = str(source.get("url") or "").strip()
+                if not url:
+                    continue
+
+                results.append(
+                    {
+                        "id": f"src_{index}",
+                        "title": str(source.get("title") or url).strip(),
+                        "url": url,
+                        "domain": str(source.get("domain") or urlparse(url).netloc.removeprefix("www.") or url).strip(),
+                        "snippet": str(source.get("snippet") or "").strip(),
+                        "source": "grok",
+                    }
+                )
+
+            return {
+                "query": query,
+                "answer": grok_result.get("answer") or "",
+                "model": grok_result.get("model") or getattr(settings, "grok_search_model", ""),
+                "results": results[:limit],
+                "instruction": "请基于 Grok 搜索结果综合回答；优先使用编号分点组织答案；引用来源时不要输出 [1] 或裸链接，而是在相关句段后插入内部标记，例如 [[cite:src_1]] 或 [[cite:src_1,src_2]]。如果 results 为空，可参考 answer 字段回答，但不要编造来源引用。",
+            }
+
         if not settings.serpapi_api_key:
             return {"error": "SERPAPI_API_KEY 未配置"}
 
